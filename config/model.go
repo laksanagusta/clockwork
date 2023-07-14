@@ -5,6 +5,7 @@ type Config struct {
 	Redis    Redis
 	MySql    MySql
 	Midtrans Midtrans
+	JWT      JWT
 }
 
 type Server struct {
@@ -27,4 +28,8 @@ type MySql struct {
 type Midtrans struct {
 	Key          string
 	IsProduction bool
+}
+
+type JWT struct {
+	SecretKey string
 }

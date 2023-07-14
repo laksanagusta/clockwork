@@ -32,13 +32,16 @@ func (r router) RegisterAPI() *gin.Engine {
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 
+	authService := auth.NewService(*config.GetConfig())
+	authMiddleware := middleware.NewAuthMiddleware()
+
 	userRepository := repository.NewRepository(r.db)
 	userService := service.NewUserService(userRepository)
-	userController := controller.NewUserController(userService, auth.NewService())
+	userController := controller.NewUserController(userService, authService)
 
 	customerRepository := repository.NewCustomerRepository(r.db)
 	customerService := service.NewCustomerService(customerRepository)
-	customerController := controller.NewCustomerController(customerService, auth.NewService())
+	customerController := controller.NewCustomerController(customerService, authService)
 
 	addressRepository := repository.NewAddressRepository(r.db)
 	addressService := service.NewAddressService(addressRepository, customerRepository)
@@ -70,9 +73,6 @@ func (r router) RegisterAPI() *gin.Engine {
 
 	router.Static("/images", "./images")
 	api := router.Group("/api/v1")
-
-	authService := auth.NewService()
-	authMiddleware := middleware.NewAuthMiddleware()
 
 	api.POST("/users", userController.RegisterUser)
 	api.POST("/users/login", userController.Login)
