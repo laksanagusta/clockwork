@@ -8,7 +8,7 @@ import (
 )
 
 type Auth interface {
-	GenerateToken(userID uint64) (string, error)
+	GenerateToken(entityID int, email string, userType string) (string, error)
 	ValidateToken(token string) (*jwt.Token, error)
 }
 
@@ -20,9 +20,16 @@ func NewService(config config.Config) Auth {
 	return &jwtAuth{config}
 }
 
-func (s *jwtAuth) GenerateToken(userID uint64) (string, error) {
+func (s *jwtAuth) GenerateToken(entityID int, email string, userType string) (string, error) {
 	claim := jwt.MapClaims{}
-	claim["user_id"] = userID
+
+	if userType == "user" {
+		claim["user_id"] = entityID
+	} else {
+		claim["customer_id"] = entityID
+	}
+
+	claim["email"] = email
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 

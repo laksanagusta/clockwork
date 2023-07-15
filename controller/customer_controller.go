@@ -35,7 +35,7 @@ func (controller *customerController) RegisterCustomer(c *gin.Context) {
 		return
 	}
 
-	token, err := controller.authService.GenerateToken(uint64(newCustomer.ID))
+	token, err := controller.authService.GenerateToken(int(newCustomer.ID), newCustomer.Email, "customer")
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.REGISTER_FAILED_MESSAGE)
 		return
@@ -59,7 +59,7 @@ func (controller *customerController) Login(c *gin.Context) {
 		helper.ErrorValidation(err, c, helper.LOGIN_FAILED_MESSAGE)
 	}
 
-	token, err := controller.authService.GenerateToken(uint64(loggedinCustomer.ID))
+	token, err := controller.authService.GenerateToken(int(loggedinCustomer.ID), loggedinCustomer.Email, "customer")
 	if err != nil {
 		helper.ErrorValidation(err, c, helper.LOGIN_FAILED_MESSAGE+", Error generating token")
 	}

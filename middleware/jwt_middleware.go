@@ -67,14 +67,14 @@ func (s *authMiddleware) AuthMiddleware(authService auth.Auth, userService servi
 		case "customer":
 			customerID := uint64(claim["customer_id"].(float64))
 
-			user, err := customerService.CustomerDetails(customerID)
+			customer, err := customerService.CustomerDetails(customerID)
 			if err != nil {
 				response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
 				c.AbortWithStatusJSON(http.StatusUnauthorized, response)
 				return
 			}
 
-			c.Set("currentCustomer", user)
+			c.Set("currentCustomer", customer)
 		default:
 			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response)

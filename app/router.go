@@ -45,28 +45,21 @@ func (r router) RegisterAPI() *gin.Engine {
 	categoryRepository := repository.NewCategoryRepository(r.db)
 
 	userService := service.NewUserService(userRepository)
-	userController := controller.NewUserController(userService, authService)
-
 	customerService := service.NewCustomerService(customerRepository)
-	customerController := controller.NewCustomerController(customerService, authService)
-
 	addressService := service.NewAddressService(addressRepository, customerRepository)
-	addressController := controller.NewAddressController(addressService)
-
-	productService := service.NewProductService(productRepository)
-	productController := controller.NewProductController(productService)
-
+	productService := service.NewProductService(productRepository, inventoryRepository)
 	midtransService := service.NewMidtransService(config.GetConfig())
-
 	orderService := service.NewOrderService(orderRepository, midtransService)
-	orderController := controller.NewOrderController(orderService)
-
 	inventoryService := service.NewInventoryService(inventoryRepository, orderItemRepository)
-	inventoryController := controller.NewInventoryController(inventoryService)
-
 	orderItemService := service.NewOrderItemService(inventoryService, orderRepository, orderItemRepository, inventoryRepository)
-	orderItemController := controller.NewOrderItemController(orderItemService)
 
+	userController := controller.NewUserController(userService, authService)
+	customerController := controller.NewCustomerController(customerService, authService)
+	addressController := controller.NewAddressController(addressService)
+	productController := controller.NewProductController(productService)
+	orderController := controller.NewOrderController(orderService)
+	inventoryController := controller.NewInventoryController(inventoryService)
+	orderItemController := controller.NewOrderItemController(orderItemService)
 	categoryService := service.NewCategoryService(categoryRepository)
 	categoryController := controller.NewCategoryController(categoryService)
 
