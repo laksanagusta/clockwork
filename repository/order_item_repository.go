@@ -14,6 +14,7 @@ type OrderItemRepository interface {
 	FindAll(page int, page_size int, q string) ([]model.OrderItem, error)
 	Delete(orderItemId int) (model.OrderItem, error)
 	FindByOrderId(orderId int) ([]model.OrderItem, error)
+	FindByProductId(productId int) ([]model.OrderItem, error)
 }
 
 type orderItemRepository struct {
@@ -70,6 +71,18 @@ func (pr *orderItemRepository) FindByOrderId(orderId int) ([]model.OrderItem, er
 	var orderItem []model.OrderItem
 
 	err := pr.db.Where("orderId = ?", orderId).Find(&orderItem).Error
+
+	if err != nil {
+		return orderItem, err
+	}
+
+	return orderItem, nil
+}
+
+func (pr *orderItemRepository) FindByProductId(productId int) ([]model.OrderItem, error) {
+	var orderItem []model.OrderItem
+
+	err := pr.db.Where("productId = ?", productId).Find(&orderItem).Error
 
 	if err != nil {
 		return orderItem, err

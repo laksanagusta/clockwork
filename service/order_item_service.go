@@ -8,8 +8,8 @@ import (
 )
 
 type OrderItemService interface {
-	Create(orderItemReq request.OrderItemCreateInput, customerId int) (model.Order, error)
-	Update(inputID request.OrderItemFindById, request request.OrderItemUpdateInput) (model.Order, error)
+	Create(orderItemReq request.OrderItemCreateRequest, customerId int) (model.Order, error)
+	Update(inputID request.OrderItemFindById, request request.OrderItemUpdateRequest) (model.Order, error)
 	FindById(orderItemId int) (model.OrderItem, error)
 	FindByCode(code string) (model.OrderItem, error)
 	FindAll(page int, page_size int, q string) ([]model.OrderItem, error)
@@ -20,19 +20,19 @@ type orderItemService struct {
 	repository          repository.OrderItemRepository
 	orderRepository     repository.OrderRepository
 	inventoryRepository repository.InventoryRepository
-	midtransService     MidtransService
+	inventoryService    InventoryService
 }
 
-func NewOrderItemService(orderRepository repository.OrderRepository, repository repository.OrderItemRepository, inventoryRepository repository.InventoryRepository, midtransService MidtransService) OrderItemService {
+func NewOrderItemService(inventoryService InventoryService, orderRepository repository.OrderRepository, repository repository.OrderItemRepository, inventoryRepository repository.InventoryRepository) OrderItemService {
 	return &orderItemService{
 		repository,
 		orderRepository,
 		inventoryRepository,
-		midtransService,
+		inventoryService,
 	}
 }
 
-func (s *orderItemService) Create(orderItemReq request.OrderItemCreateInput, customerId int) (model.Order, error) {
+func (s *orderItemService) Create(orderItemReq request.OrderItemCreateRequest, customerId int) (model.Order, error) {
 	orderItem := model.OrderItem{}
 
 	orderItem.Qty = orderItemReq.Qty
@@ -42,7 +42,7 @@ func (s *orderItemService) Create(orderItemReq request.OrderItemCreateInput, cus
 
 	inventory, err := s.inventoryRepository.FindByProductId(int(orderItemReq.ProductID))
 	if err != nil {
-		return model.Order{}, nil
+		return model.Order{}, err
 	}
 
 	if inventory.SalableQty < orderItemReq.Qty {
@@ -51,47 +51,52 @@ func (s *orderItemService) Create(orderItemReq request.OrderItemCreateInput, cus
 
 	order, err := s.orderRepository.FindOngoingOrder(int(orderItemReq.OrderID))
 	if err != nil {
-		return order, err
+		return model.Order{}, err
 	}
 
+	updatedOrder := model.Order{}
 	if order.ID == 0 {
 		orderItem.OrderID = order.ID
-
-		order := model.Order{}
 
 		order.GrandTotal = orderItemReq.SubTotal
 		order.Status = "created"
 
-		order, err := s.orderRepository.Create(order)
+		order, err = s.orderRepository.Create(order)
 		if err != nil {
-			return order, err
+			return model.Order{}, err
 		}
-
-		_, err = s.repository.Create(orderItem)
-		if err != nil {
-			return order, err
-		}
-
-		updatedOrder, err := s.RecalculateOrderGrandtotal(order)
-		if err != nil {
-			return updatedOrder, err
-		}
-
-		return updatedOrder, nil
-	} else {
-		updatedOrder, err := s.RecalculateOrderGrandtotal(order)
-		if err != nil {
-			return updatedOrder, err
-		}
-
-		return updatedOrder, nil
 	}
+
+	_, err = s.repository.Create(orderItem)
+	if err != nil {
+		return model.Order{}, err
+	}
+
+	updatedOrder, err = s.RecalculateOrderGrandtotal(order)
+	if err != nil {
+		return updatedOrder, err
+	}
+
+	inventory.ReservedQty += orderItem.Qty
+	inventory.SalableQty -= orderItem.Qty
+
+	_, err = s.inventoryRepository.Update(inventory)
+	if err != nil {
+		return model.Order{}, err
+	}
+
+	return updatedOrder, nil
 }
 
-func (s *orderItemService) Update(inputID request.OrderItemFindById, orderItemReq request.OrderItemUpdateInput) (model.Order, error) {
+func (s *orderItemService) Update(inputID request.OrderItemFindById, orderItemReq request.OrderItemUpdateRequest) (model.Order, error) {
 	var order model.Order
 
 	orderItem, err := s.repository.FindById(inputID.ID)
+	if err != nil {
+		return model.Order{}, err
+	}
+
+	_, err = s.inventoryService.syncInventoryAfterUpdateCartItem(int(orderItem.ProductID), orderItem, orderItemReq)
 	if err != nil {
 		return order, err
 	}
@@ -104,31 +109,10 @@ func (s *orderItemService) Update(inputID request.OrderItemFindById, orderItemRe
 
 	_, err = s.repository.Update(orderItem)
 	if err != nil {
-		return order, err
+		return model.Order{}, err
 	}
 
 	updatedOrder, err := s.RecalculateOrderGrandtotal(order)
-	if err != nil {
-		return updatedOrder, err
-	}
-
-	return updatedOrder, nil
-}
-
-func (s *orderItemService) RecalculateOrderGrandtotal(order model.Order) (model.Order, error) {
-	orderItems, err := s.repository.FindByOrderId(int(order.ID))
-	if err != nil {
-		return order, err
-	}
-
-	var grandTotal int
-	for _, v := range orderItems {
-		grandTotal += v.SubTotal
-	}
-
-	order.GrandTotal = grandTotal
-
-	updatedOrder, err := s.orderRepository.Update(order)
 	if err != nil {
 		return updatedOrder, err
 	}
@@ -168,5 +152,31 @@ func (s *orderItemService) Delete(orderItemId int) (model.OrderItem, error) {
 		return orderItem, err
 	}
 
+	_, err = s.inventoryService.syncInventoryAfterDeleteItemFromCart(orderItem)
+	if err != nil {
+		return orderItem, err
+	}
+
 	return orderItem, nil
+}
+
+func (s *orderItemService) RecalculateOrderGrandtotal(order model.Order) (model.Order, error) {
+	orderItems, err := s.repository.FindByOrderId(int(order.ID))
+	if err != nil {
+		return model.Order{}, err
+	}
+
+	var grandTotal int
+	for _, v := range orderItems {
+		grandTotal += v.SubTotal
+	}
+
+	order.GrandTotal = grandTotal
+
+	updatedOrder, err := s.orderRepository.Update(order)
+	if err != nil {
+		return updatedOrder, err
+	}
+
+	return updatedOrder, nil
 }

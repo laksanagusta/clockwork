@@ -31,7 +31,7 @@ func NewOrderItemController(service service.OrderItemService) OrderItemControlle
 func (orderItemController *orderItemController) Create(c *gin.Context) {
 	customerId := c.MustGet("curentCustomer").(model.Customer).ID
 
-	var input request.OrderItemCreateInput
+	var input request.OrderItemCreateRequest
 	err := c.ShouldBindJSON(&input)
 
 	if err != nil {
@@ -58,7 +58,7 @@ func (orderItemController *orderItemController) Update(c *gin.Context) {
 		return
 	}
 
-	var inputData request.OrderItemUpdateInput
+	var inputData request.OrderItemUpdateRequest
 	err = c.ShouldBindJSON(&inputData)
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.UPDATE_FAILED_MESSAGE)

@@ -36,32 +36,37 @@ func (r router) RegisterAPI() *gin.Engine {
 	authMiddleware := middleware.NewAuthMiddleware()
 
 	userRepository := repository.NewRepository(r.db)
+	customerRepository := repository.NewCustomerRepository(r.db)
+	addressRepository := repository.NewAddressRepository(r.db)
+	productRepository := repository.NewProductRepository(r.db)
+	orderRepository := repository.NewOrderRepository(r.db)
+	inventoryRepository := repository.NewInventoryRepository(r.db)
+	orderItemRepository := repository.NewOrderItemRepository(r.db)
+	categoryRepository := repository.NewCategoryRepository(r.db)
+
 	userService := service.NewUserService(userRepository)
 	userController := controller.NewUserController(userService, authService)
 
-	customerRepository := repository.NewCustomerRepository(r.db)
 	customerService := service.NewCustomerService(customerRepository)
 	customerController := controller.NewCustomerController(customerService, authService)
 
-	addressRepository := repository.NewAddressRepository(r.db)
 	addressService := service.NewAddressService(addressRepository, customerRepository)
 	addressController := controller.NewAddressController(addressService)
 
-	productRepository := repository.NewProductRepository(r.db)
 	productService := service.NewProductService(productRepository)
 	productController := controller.NewProductController(productService)
 
 	midtransService := service.NewMidtransService(config.GetConfig())
 
-	orderRepository := repository.NewOrderRepository(r.db)
 	orderService := service.NewOrderService(orderRepository, midtransService)
 	orderController := controller.NewOrderController(orderService)
 
-	inventoryRepository := repository.NewInventoryRepository(r.db)
-	inventoryService := service.NewInventoryService(inventoryRepository)
+	inventoryService := service.NewInventoryService(inventoryRepository, orderItemRepository)
 	inventoryController := controller.NewInventoryController(inventoryService)
 
-	categoryRepository := repository.NewCategoryRepository(r.db)
+	orderItemService := service.NewOrderItemService(inventoryService, orderRepository, orderItemRepository, inventoryRepository)
+	orderItemController := controller.NewOrderItemController(orderItemService)
+
 	categoryService := service.NewCategoryService(categoryRepository)
 	categoryController := controller.NewCategoryController(categoryService)
 
@@ -117,6 +122,10 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.GET("/inventories/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.FindById)
 	api.GET("/inventories/product-id/:code", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.FindByProductId)
 	api.GET("/inventories", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.FindAll)
+
+	api.POST("/order-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderItemController.Create)
+	api.PUT("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderItemController.Update)
+	api.DELETE("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderItemController.Delete)
 
 	return router
 }

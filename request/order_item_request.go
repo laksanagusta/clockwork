@@ -1,6 +1,6 @@
 package request
 
-type OrderItemCreateInput struct {
+type OrderItemCreateRequest struct {
 	Qty       int  `json:"qty" validate:"required" binding:"required"`
 	UnitPrice int  `json:"unitPrice" validate:"required" binding:"required"`
 	SubTotal  int  `json:"subTotal" validate:"required" binding:"required"`
@@ -8,7 +8,7 @@ type OrderItemCreateInput struct {
 	OrderID   uint `json:"orderId" validate:"required" binding:"required"`
 }
 
-type OrderItemUpdateInput struct {
+type OrderItemUpdateRequest struct {
 	Qty       int `json:"qty" validate:"required" binding:"required"`
 	UnitPrice int `json:"unitPrice" validate:"required" binding:"required"`
 	SubTotal  int `json:"subTotal" validate:"required" binding:"required"`

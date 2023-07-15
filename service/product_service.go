@@ -17,16 +17,19 @@ type ProductService interface {
 }
 
 type productService struct {
-	repository repository.ProductRepository
+	repository    repository.ProductRepository
+	inventoryRepo repository.InventoryRepository
 }
 
-func NewProductService(repository repository.ProductRepository) ProductService {
+func NewProductService(repository repository.ProductRepository, inventoryRepo repository.InventoryRepository) ProductService {
 	return &productService{
 		repository,
+		inventoryRepo,
 	}
 }
 
 const PRODUCT_ALREADY_EXIST_NOTIF = "create product failed, product with sama name or title already exist"
+const PRODUCT_NOT_FOUND = "Product not found"
 
 func (s *productService) Create(request request.ProductCreateInput) (model.Product, error) {
 	product := model.Product{}
@@ -48,6 +51,19 @@ func (s *productService) Create(request request.ProductCreateInput) (model.Produ
 	newProduct, err := s.repository.Create(product)
 	if err != nil {
 		return newProduct, err
+	}
+
+	inventory := model.Inventory{
+		StockQty:    0,
+		IsInStock:   false,
+		ReservedQty: 0,
+		SalableQty:  0,
+		ProductID:   newProduct.ID,
+	}
+
+	_, err = s.inventoryRepo.Create(inventory)
+	if err != nil {
+		return newProduct, nil
 	}
 
 	return newProduct, nil
@@ -80,7 +96,7 @@ func (s *productService) FindById(productId int) (model.Product, error) {
 	}
 
 	if product.ID == 0 {
-		return product, errors.New("Product not found")
+		return product, errors.New(PRODUCT_NOT_FOUND)
 	}
 
 	return product, nil
@@ -93,7 +109,7 @@ func (s *productService) FindBySerialNumber(serialNumber string) (model.Product,
 	}
 
 	if product.ID == 0 {
-		return product, errors.New("Product not found")
+		return product, errors.New(PRODUCT_NOT_FOUND)
 	}
 
 	return product, nil
