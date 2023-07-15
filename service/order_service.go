@@ -4,7 +4,6 @@ import (
 	"clockwork-server/model"
 	"clockwork-server/repository"
 	"clockwork-server/request"
-	"errors"
 )
 
 type OrderService interface {
@@ -49,12 +48,12 @@ func (s *orderService) PlaceOrder(orderReq request.OrderCreateRequest, orderId r
 
 	createOrder.SnapUrl = snapUrl
 
-	assignSnapUrl, err := s.repository.Update(createOrder)
+	updateOrder, err := s.repository.Update(createOrder)
 	if err != nil {
 		return createOrder, err
 	}
 
-	return assignSnapUrl, nil
+	return updateOrder, nil
 }
 
 func (s *orderService) Create(request request.OrderCreateRequest) (model.Order, error) {
@@ -91,10 +90,6 @@ func (s *orderService) FindById(orderId int) (model.Order, error) {
 		return order, err
 	}
 
-	if order.ID == 0 {
-		return order, errors.New("Order not found")
-	}
-
 	return order, nil
 }
 
@@ -102,10 +97,6 @@ func (s *orderService) FindByCode(code string) (model.Order, error) {
 	order, err := s.repository.FindByCode(code)
 	if err != nil {
 		return order, err
-	}
-
-	if order.ID == 0 {
-		return order, errors.New("Order not found")
 	}
 
 	return order, nil

@@ -3,6 +3,7 @@ package service
 import (
 	"clockwork-server/config"
 	"clockwork-server/model"
+	"clockwork-server/repository"
 	"errors"
 	"strconv"
 
@@ -17,11 +18,12 @@ type MidtransService interface {
 }
 
 type midtransService struct {
-	client   snap.Client
-	midtrans config.Midtrans
+	client    snap.Client
+	midtrans  config.Midtrans
+	orderRepo repository.OrderRepository
 }
 
-func NewMidtransService(config *config.Config) MidtransService {
+func NewMidtransService(config *config.Config, orderRepo repository.OrderRepository) MidtransService {
 	var client snap.Client
 
 	env := midtrans.Sandbox
@@ -32,8 +34,9 @@ func NewMidtransService(config *config.Config) MidtransService {
 
 	client.New(config.Midtrans.Key, env)
 	return &midtransService{
-		client:   client,
-		midtrans: config.Midtrans,
+		client:    client,
+		midtrans:  config.Midtrans,
+		orderRepo: orderRepo,
 	}
 }
 
@@ -45,6 +48,7 @@ func (m midtransService) GenerateSnapUrl(order model.Order) (string, error) {
 		},
 		EnabledPayments: []snap.SnapPaymentType{
 			"bca_va",
+			"ovo",
 		},
 	}
 
@@ -71,6 +75,11 @@ func (m midtransService) VerifyPayment(data map[string]interface{}) error {
 		return errors.New("Invalid payload")
 	}
 
+	order, err := m.orderRepo.FindById(data["order_id"].(int))
+	if err != nil {
+		return err
+	}
+
 	// 4. Check transaction to Midtrans with param orderId
 	transactionStatusResp, e := coreClient.CheckTransaction(orderId)
 	if e != nil {
@@ -83,19 +92,24 @@ func (m midtransService) VerifyPayment(data map[string]interface{}) error {
 					// TODO set transaction status on your database to 'challenge'
 					// e.g: 'Payment status challenged. Please take action on your Merchant Administration Portal
 				} else if transactionStatusResp.FraudStatus == "accept" {
-					// TODO set transaction status on your database to 'success'
+					order.Status = "payment_accept"
 				}
 			} else if transactionStatusResp.TransactionStatus == "settlement" {
-				// TODO set transaction status on your databaase to 'success'
+				order.Status = "payment_accept"
 			} else if transactionStatusResp.TransactionStatus == "deny" {
 				// TODO you can ignore 'deny', because most of the time it allows payment retries
 				// and later can become success
 			} else if transactionStatusResp.TransactionStatus == "cancel" || transactionStatusResp.TransactionStatus == "expire" {
-				// TODO set transaction status on your databaase to 'failure'
+				order.Status = "payment_expired"
 			} else if transactionStatusResp.TransactionStatus == "pending" {
-				// TODO set transaction status on your databaase to 'pending' / waiting payment
+				order.Status = "payment_pending"
 			}
 		}
+	}
+
+	_, err = m.orderRepo.Update(order)
+	if err != nil {
+		return err
 	}
 
 	return nil

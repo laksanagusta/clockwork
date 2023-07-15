@@ -96,11 +96,6 @@ func (s *orderItemService) Update(inputID request.OrderItemFindById, orderItemRe
 		return model.Order{}, err
 	}
 
-	_, err = s.inventoryService.syncInventoryAfterUpdateCartItem(int(orderItem.ProductID), orderItem, orderItemReq)
-	if err != nil {
-		return order, err
-	}
-
 	order = orderItem.Order
 
 	orderItem.Qty = orderItemReq.Qty
@@ -110,6 +105,11 @@ func (s *orderItemService) Update(inputID request.OrderItemFindById, orderItemRe
 	_, err = s.repository.Update(orderItem)
 	if err != nil {
 		return model.Order{}, err
+	}
+
+	_, err = s.inventoryService.syncInventoryAfterUpdateCartItem(int(orderItem.ProductID), orderItem, orderItemReq)
+	if err != nil {
+		return order, err
 	}
 
 	updatedOrder, err := s.RecalculateOrderGrandtotal(order)
@@ -166,12 +166,9 @@ func (s *orderItemService) RecalculateOrderGrandtotal(order model.Order) (model.
 		return model.Order{}, err
 	}
 
-	var grandTotal int
 	for _, v := range orderItems {
-		grandTotal += v.SubTotal
+		order.BaseAmount += v.SubTotal
 	}
-
-	order.GrandTotal = grandTotal
 
 	updatedOrder, err := s.orderRepository.Update(order)
 	if err != nil {
