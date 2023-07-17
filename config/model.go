@@ -14,6 +14,7 @@ type Server struct {
 }
 
 type Redis struct {
+	Host     string
 	Password string
 }
 

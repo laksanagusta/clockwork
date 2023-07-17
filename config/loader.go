@@ -19,6 +19,7 @@ func GetConfig() *Config {
 			Port: os.Getenv("PORT"),
 		},
 		Redis{
+			Host:     os.Getenv("REDIS_HOST"),
 			Password: os.Getenv("REDIS_PASSWORD"),
 		},
 		MySql{

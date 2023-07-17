@@ -48,7 +48,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	customerService := service.NewCustomerService(customerRepository)
 	addressService := service.NewAddressService(addressRepository, customerRepository)
 	productService := service.NewProductService(productRepository, inventoryRepository)
-	midtransService := service.NewMidtransService(config.GetConfig())
+	midtransService := service.NewMidtransService(config.GetConfig(), orderRepository)
 	orderService := service.NewOrderService(orderRepository, midtransService)
 	inventoryService := service.NewInventoryService(inventoryRepository, orderItemRepository)
 	orderItemService := service.NewOrderItemService(inventoryService, orderRepository, orderItemRepository, inventoryRepository)
