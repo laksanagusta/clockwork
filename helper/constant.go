@@ -13,4 +13,9 @@ const (
 	UPDATE_FAILED_MESSAGE        = "Update failed"
 	DELETE_FAILED_MESSAGE        = "Delete failed"
 	QUERY_LIMITATION             = 20
+
+	CATEGORY_NOT_FOUND_MESSAGE = "Category data not found"
+
+	PRODUCT_EXIST_MESSAGE     = "Product already exist"
+	PRODUCT_NOT_FOUND_MESSAGE = "Product data not found"
 )

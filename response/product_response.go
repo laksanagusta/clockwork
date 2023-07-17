@@ -12,6 +12,8 @@ type Product struct {
 	SerialNumber string    `json:"serialNumber"`
 	UnitPrice    int       `json:"unitPrice"`
 	Inventory    Inventory `json:"inventory"`
+	Category     Category  `json:"category"`
+	Images       []Image   `jsom:"images"`
 	User         User      `json:"user"`
 	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"updatedAt"`
@@ -34,6 +36,18 @@ func FormatProduct(product model.Product) Product {
 
 	if product.User.ID != 0 {
 		dataProduct.User = FormatUser(product.User, "")
+	}
+
+	if product.Inventory.ID != 0 {
+		dataProduct.Inventory = FormatInventory(product.Inventory)
+	}
+
+	if product.Category.ID != 0 {
+		dataProduct.Category = FormatCategory(product.Category)
+	}
+
+	if len(product.Images) > 0 {
+		dataProduct.Images = FormatImages(product.Images)
 	}
 
 	return dataProduct

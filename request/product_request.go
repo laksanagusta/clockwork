@@ -7,14 +7,15 @@ type ProductCreateInput struct {
 	UnitPrice    int    `json:"unitPrice" validate:"required" binding:"required,numeric,min=1"`
 	Description  string `json:"description" validate:"required" binding:"required"`
 	SerialNumber string `json:"serialNumber" validate:"required" binding:"required,alphanum"`
+	CategoryID   uint   `json:"categoryId" validate:"required" binding:"required,numeric"`
 	User         model.User
 }
-
 type ProductUpdateInput struct {
 	Title        string `json:"title" validate:"required" binding:"required"`
 	UnitPrice    int    `json:"unitPrice" validate:"required" binding:"required"`
 	Description  string `json:"description" validate:"required" binding:"required"`
 	SerialNumber string `json:"serialNumber" validate:"required" binding:"required"`
+	CategoryID   uint   `json:"categoryId" validate:"required" binding:"required,numeric"`
 }
 
 type ProductFindById struct {

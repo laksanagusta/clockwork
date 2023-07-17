@@ -34,7 +34,7 @@ func GetConfig() *Config {
 			IsProduction: os.Getenv("ENVIRONMENT") == "production",
 		},
 		JWT{
-			SecretKey: os.Getenv("JWT_SECRET"),
+			SecretKey: []byte(os.Getenv("JWT_SECRET")),
 		},
 	}
 }

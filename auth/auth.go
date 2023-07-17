@@ -3,6 +3,7 @@ package auth
 import (
 	"clockwork-server/config"
 	"errors"
+	"fmt"
 
 	"github.com/golang-jwt/jwt/v4"
 )
@@ -31,12 +32,16 @@ func (s *jwtAuth) GenerateToken(entityID int, email string, userType string) (st
 
 	claim["email"] = email
 
+	fmt.Println(claim)
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 
 	signedToken, err := token.SignedString(s.config.JWT.SecretKey)
 	if err != nil {
 		return signedToken, err
 	}
+
+	fmt.Println(signedToken)
 
 	return signedToken, nil
 }

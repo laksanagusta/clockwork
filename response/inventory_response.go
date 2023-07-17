@@ -18,7 +18,6 @@ func FormatInventory(inventory model.Inventory) Inventory {
 
 	dataInventory.StockQty = inventory.StockQty
 	dataInventory.IsInStock = inventory.IsInStock
-	dataInventory.ProductId = int(inventory.ProductID)
 	dataInventory.CreatedAt = inventory.CreatedAt
 	dataInventory.UpdatedAt = inventory.UpdatedAt
 

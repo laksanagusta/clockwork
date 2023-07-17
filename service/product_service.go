@@ -1,6 +1,7 @@
 package service
 
 import (
+	"clockwork-server/helper"
 	"clockwork-server/model"
 	"clockwork-server/repository"
 	"clockwork-server/request"
@@ -18,12 +19,18 @@ type ProductService interface {
 
 type productService struct {
 	repository    repository.ProductRepository
+	categoryRepo  repository.CategoryRepository
 	inventoryRepo repository.InventoryRepository
 }
 
-func NewProductService(repository repository.ProductRepository, inventoryRepo repository.InventoryRepository) ProductService {
+func NewProductService(
+	repository repository.ProductRepository,
+	categoryRepo repository.CategoryRepository,
+	inventoryRepo repository.InventoryRepository,
+) ProductService {
 	return &productService{
 		repository,
+		categoryRepo,
 		inventoryRepo,
 	}
 }
@@ -38,19 +45,20 @@ func (s *productService) Create(request request.ProductCreateInput) (model.Produ
 	product.SerialNumber = request.SerialNumber
 	product.UnitPrice = request.UnitPrice
 	product.UserID = request.User.ID
+	product.CategoryID = request.CategoryID
 
-	checkProduct, err := s.repository.FindBySerialNumberAndTitle(product.SerialNumber, product.Title)
+	_, err := s.categoryRepo.FindById(int(product.CategoryID))
+	if err != nil {
+		return product, errors.New(helper.CATEGORY_NOT_FOUND_MESSAGE)
+	}
+
+	checkSameProduct, err := s.repository.FindBySerialNumberAndTitle(product.SerialNumber, product.Title)
 	if err != nil {
 		return product, err
 	}
 
-	if checkProduct.ID != 0 {
-		return product, errors.New(PRODUCT_ALREADY_EXIST_NOTIF)
-	}
-
-	newProduct, err := s.repository.Create(product)
-	if err != nil {
-		return newProduct, err
+	if checkSameProduct.ID != 0 {
+		return product, errors.New(helper.PRODUCT_EXIST_MESSAGE)
 	}
 
 	inventory := model.Inventory{
@@ -58,28 +66,53 @@ func (s *productService) Create(request request.ProductCreateInput) (model.Produ
 		IsInStock:   false,
 		ReservedQty: 0,
 		SalableQty:  0,
-		ProductID:   newProduct.ID,
 	}
 
-	_, err = s.inventoryRepo.Create(inventory)
+	newInventory, err := s.inventoryRepo.Create(inventory)
 	if err != nil {
-		return newProduct, nil
+		return product, nil
 	}
 
-	return newProduct, nil
+	product.InventoryID = newInventory.ID
+
+	newProduct, err := s.repository.Create(product)
+	if err != nil {
+		return newProduct, err
+	}
+
+	getNewProduct, err := s.repository.FindById(int(newProduct.ID))
+	if err != nil {
+		return getNewProduct, err
+	}
+
+	return getNewProduct, nil
 }
 
 func (s *productService) Update(inputID request.ProductFindById, request request.ProductUpdateInput) (model.Product, error) {
 	product, err := s.repository.FindById(inputID.ID)
 	if err != nil {
-		return product, err
+		return product, errors.New(helper.PRODUCT_NOT_FOUND_MESSAGE)
 	}
 
 	product.Title = request.Title
 	product.Description = request.Description
-	product.UnitPrice = request.UnitPrice
 	product.SerialNumber = request.SerialNumber
 	product.UnitPrice = request.UnitPrice
+	product.CategoryID = request.CategoryID
+
+	_, err = s.categoryRepo.FindById(int(product.CategoryID))
+	if err != nil {
+		return product, errors.New(helper.CATEGORY_NOT_FOUND_MESSAGE)
+	}
+
+	checkSameProduct, err := s.repository.FindBySerialNumberAndTitle(product.SerialNumber, product.Title)
+	if err != nil {
+		return product, err
+	}
+
+	if checkSameProduct.ID != 0 {
+		return product, errors.New(helper.PRODUCT_EXIST_MESSAGE)
+	}
 
 	updatedProduct, err := s.repository.Update(product)
 	if err != nil {
