@@ -47,7 +47,7 @@ func (pr *productRepository) Update(product model.Product) (model.Product, error
 
 func (pr *productRepository) FindById(productId int) (model.Product, error) {
 	product := model.Product{}
-	err := pr.db.First(&product, productId).Error
+	err := pr.db.Preload("Inventory").Preload("User").Preload("Category").Preload("Images").First(&product, productId).Error
 
 	if err != nil {
 		return product, err
@@ -86,7 +86,7 @@ func (pr *productRepository) FindAll(page int, limit int, q string) ([]model.Pro
 		querydb = querydb.Where("lower(title) LIKE ?", "%"+q+"%")
 	}
 
-	err := querydb.Preload("User").Find(&product).Error
+	err := querydb.Preload("Inventory").Preload("User").Preload("Category").Preload("Images").Find(&product).Error
 	if err != nil {
 		return product, err
 	}

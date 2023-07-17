@@ -55,15 +55,6 @@ func (s *categoryService) Update(inputID request.CategoryFindById, request reque
 
 	category.Title = request.Title
 
-	checkIfExist, err := s.repository.FindAll(0, 1, strings.ToLower(category.Title))
-	if err != nil {
-		return category, err
-	}
-
-	if len(checkIfExist) > 0 {
-		return category, errors.New("Category with same name already exist")
-	}
-
 	updatedCategory, err := s.repository.Update(category)
 	if err != nil {
 		return updatedCategory, err
@@ -95,7 +86,12 @@ func (s *categoryService) FindAll(page int, limit int, q string) ([]model.Catego
 }
 
 func (s *categoryService) Delete(categoryId int) (model.Category, error) {
-	category, err := s.repository.Delete(categoryId)
+	category, err := s.repository.FindById(categoryId)
+	if err != nil {
+		return category, errors.New("category data not found")
+	}
+
+	_, err = s.repository.Delete(categoryId)
 	if err != nil {
 		return category, err
 	}

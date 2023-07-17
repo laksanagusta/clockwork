@@ -47,7 +47,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	userService := service.NewUserService(userRepository)
 	customerService := service.NewCustomerService(customerRepository)
 	addressService := service.NewAddressService(addressRepository, customerRepository)
-	productService := service.NewProductService(productRepository, inventoryRepository)
+	productService := service.NewProductService(productRepository, categoryRepository, inventoryRepository)
 	midtransService := service.NewMidtransService(config.GetConfig(), orderRepository)
 	orderService := service.NewOrderService(orderRepository, midtransService)
 	inventoryService := service.NewInventoryService(inventoryRepository, orderItemRepository)
@@ -70,6 +70,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	}))
 
 	router.Static("/images", "./images")
+
 	api := router.Group("/api/v1")
 
 	api.POST("/users", userController.RegisterUser)

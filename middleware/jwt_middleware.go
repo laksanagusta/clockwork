@@ -4,6 +4,7 @@ import (
 	"clockwork-server/auth"
 	"clockwork-server/helper"
 	"clockwork-server/service"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -45,6 +46,8 @@ func (s *authMiddleware) AuthMiddleware(authService auth.Auth, userService servi
 		}
 
 		claim, ok := token.Claims.(jwt.MapClaims)
+
+		fmt.Println(claim)
 
 		if !ok || !token.Valid {
 			response := helper.APIResponse("Unauthorized", http.StatusUnauthorized, "error", nil)

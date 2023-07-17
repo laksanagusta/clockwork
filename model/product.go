@@ -14,7 +14,10 @@ type Product struct {
 	UnitPrice    int    `gorm:"size:60;not null;" json:"unitPrice"`
 	UserID       uint64
 	User         User
+	InventoryID  uint
 	Inventory    Inventory
+	CategoryID   uint
+	Category     Category
 	Images       []Image
 }
 

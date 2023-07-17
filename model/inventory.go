@@ -8,5 +8,4 @@ type Inventory struct {
 	IsInStock   bool `gorm:"size:20;not null;" json:"isInStock"`
 	ReservedQty int  `gorm:"size:20;not null;" json:"reservedQty"`
 	SalableQty  int  `gorm:"size:20;not null;" json:"salableQty"`
-	ProductID   uint `gorm:"size:20;not null;" json:"productId"`
 }

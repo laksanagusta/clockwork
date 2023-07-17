@@ -32,5 +32,5 @@ type Midtrans struct {
 }
 
 type JWT struct {
-	SecretKey string
+	SecretKey []byte
 }

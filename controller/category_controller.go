@@ -68,7 +68,7 @@ func (categoryController *categoryController) Update(c *gin.Context) {
 		return
 	}
 
-	response := helper.APIResponse("Success create category", http.StatusOK, helper.SUCCESS, response.FormatCategory(updatedCategory))
+	response := helper.APIResponse("Success update category", http.StatusOK, helper.SUCCESS, response.FormatCategory(updatedCategory))
 	c.JSON(http.StatusOK, response)
 }
 
@@ -78,11 +78,13 @@ func (categoryController *categoryController) FindById(c *gin.Context) {
 	err := c.ShouldBindUri(&input)
 	if err != nil {
 		helper.ErrorValidation(err, c, helper.VALIDATION_ERROR_MESSAGE)
+		return
 	}
 
 	category, err := categoryController.service.FindById(input.ID)
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.FAILED_GET_DATA_MESSAGE)
+		return
 	}
 
 	response := helper.APIResponse("Success get category !", http.StatusOK, helper.SUCCESS, response.FormatCategory(category))
