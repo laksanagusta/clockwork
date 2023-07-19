@@ -14,19 +14,19 @@ type InventoryService interface {
 	FindByProductId(productId int) (model.Inventory, error)
 	FindAll(page int, page_size int, q string) ([]model.Inventory, error)
 	Delete(inventoryId int) (model.Inventory, error)
-	syncInventoryAfterUpdateCartItem(productId int, orderItem model.OrderItem, orderItemReq request.OrderItemUpdateRequest) (model.Inventory, error)
-	syncInventoryAfterDeleteItemFromCart(orderItem model.OrderItem) (model.Inventory, error)
+	syncInventoryAfterUpdateCartItem(productId int, cartItem model.CartItem, cartItemReq request.CartItemUpdateRequest) (model.Inventory, error)
+	syncInventoryAfterDeleteItemFromCart(cartItem model.CartItem) (model.Inventory, error)
 }
 
 type inventoryService struct {
-	repository    repository.InventoryRepository
-	orderItemRepo repository.OrderItemRepository
+	repository   repository.InventoryRepository
+	cartItemRepo repository.CartItemRepository
 }
 
-func NewInventoryService(repository repository.InventoryRepository, orderItemRepo repository.OrderItemRepository) InventoryService {
+func NewInventoryService(repository repository.InventoryRepository, cartItemRepo repository.CartItemRepository) InventoryService {
 	return &inventoryService{
 		repository,
-		orderItemRepo,
+		cartItemRepo,
 	}
 }
 
@@ -39,14 +39,14 @@ func (s *inventoryService) Create(request request.InventoryCreateInput) (model.I
 	inventory.ReservedQty = request.ReservedQty
 	inventory.IsInStock = request.IsInStock
 
-	checkInventory, err := s.repository.FindByProductId(request.ProductID)
-	if err != nil {
-		return inventory, err
-	}
+	// checkInventory, err := s.repository.FindByProductId(request.ProductID)
+	// if err != nil {
+	// 	return inventory, err
+	// }
 
-	if checkInventory.ID != 0 {
-		return inventory, errors.New(INVENTORY_ALREADY_EXIST_NOTIF)
-	}
+	// if checkInventory.ID != 0 {
+	// 	return inventory, errors.New(INVENTORY_ALREADY_EXIST_NOTIF)
+	// }
 
 	newInventory, err := s.repository.Create(inventory)
 	if err != nil {
@@ -63,8 +63,6 @@ func (s *inventoryService) Update(inputID request.InventoryFindById, request req
 	}
 
 	inventory.StockQty = request.StockQty
-	inventory.SalableQty = request.SalableQty
-	inventory.ReservedQty = request.ReservedQty
 	inventory.IsInStock = request.IsInStock
 
 	updatedInventory, err := s.repository.Update(inventory)
@@ -119,18 +117,18 @@ func (s *inventoryService) Delete(inventoryId int) (model.Inventory, error) {
 	return inventory, nil
 }
 
-func (s *inventoryService) syncInventoryAfterUpdateCartItem(productId int, orderItem model.OrderItem, orderItemReq request.OrderItemUpdateRequest) (model.Inventory, error) {
+func (s *inventoryService) syncInventoryAfterUpdateCartItem(productId int, cartItem model.CartItem, cartItemReq request.CartItemUpdateRequest) (model.Inventory, error) {
 	inventory, err := s.FindByProductId(productId)
 	if err != nil {
 		return inventory, err
 	}
 
-	if orderItem.Qty > orderItemReq.Qty {
-		inventory.ReservedQty -= orderItem.Qty - orderItemReq.Qty
-		inventory.SalableQty += orderItem.Qty - orderItemReq.Qty
-	} else if orderItem.Qty < orderItemReq.Qty {
-		inventory.ReservedQty += orderItemReq.Qty - orderItem.Qty
-		inventory.SalableQty -= orderItemReq.Qty - orderItem.Qty
+	if cartItem.Qty > cartItemReq.Qty {
+		inventory.ReservedQty -= cartItem.Qty - cartItemReq.Qty
+		inventory.SalableQty += cartItem.Qty - cartItemReq.Qty
+	} else if cartItem.Qty < cartItemReq.Qty {
+		inventory.ReservedQty += cartItemReq.Qty - cartItem.Qty
+		inventory.SalableQty -= cartItemReq.Qty - cartItem.Qty
 	}
 
 	updatedInventory, err := s.repository.Update(inventory)
@@ -141,14 +139,14 @@ func (s *inventoryService) syncInventoryAfterUpdateCartItem(productId int, order
 	return updatedInventory, err
 }
 
-func (s *inventoryService) syncInventoryAfterDeleteItemFromCart(orderItem model.OrderItem) (model.Inventory, error) {
-	inventory, err := s.FindByProductId(int(orderItem.ProductID))
+func (s *inventoryService) syncInventoryAfterDeleteItemFromCart(cartItem model.CartItem) (model.Inventory, error) {
+	inventory, err := s.FindByProductId(int(cartItem.ProductID))
 	if err != nil {
 		return inventory, err
 	}
 
-	inventory.ReservedQty -= orderItem.Qty
-	inventory.SalableQty += orderItem.Qty
+	inventory.ReservedQty -= cartItem.Qty
+	inventory.SalableQty += cartItem.Qty
 
 	updateInventory, err := s.repository.Update(inventory)
 	if err != nil {

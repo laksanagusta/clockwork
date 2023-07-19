@@ -69,20 +69,20 @@ func (pr *inventoryRepository) FindByProductId(productId int) (model.Inventory, 
 func (pr *inventoryRepository) FindAll(page int, limit int, q string) ([]model.Inventory, error) {
 	var inventory []model.Inventory
 
-	querydb := pr.db.Where("is_deleted = ?", 0)
+	querydb := pr.db
 
 	if limit > 0 {
-		querydb.Limit(limit)
+		querydb = querydb.Limit(limit)
 	} else {
-		querydb.Limit(helper.QUERY_LIMITATION)
+		querydb = querydb.Limit(helper.QUERY_LIMITATION)
 	}
 
 	if page > 0 {
-		querydb.Offset(page)
+		querydb = querydb.Offset(page - 1)
 	}
 
 	if q != "" {
-		querydb.Where("title LIKE ?", "%"+q+"%")
+		querydb = querydb.Where("lower(title) LIKE ?", "%"+q+"%")
 	}
 
 	err := querydb.Find(&inventory).Error

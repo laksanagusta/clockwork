@@ -6,9 +6,12 @@ import (
 )
 
 type Inventory struct {
-	StockQty  int       `json:"stockQty"`
-	IsInStock bool      `json:"isInStock"`
-	ProductId int       `json:"productId"`
+	ID          uint `json:"id"`
+	StockQty    int  `json:"stockQty"`
+	IsInStock   bool `json:"isInStock"`
+	SalableQty  int  `json:"salableQty"`
+	ReservedQty int  `json:"reservedQty"`
+	// ProductId int       `json:"productId"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
@@ -16,6 +19,7 @@ type Inventory struct {
 func FormatInventory(inventory model.Inventory) Inventory {
 	var dataInventory Inventory
 
+	dataInventory.ID = inventory.ID
 	dataInventory.StockQty = inventory.StockQty
 	dataInventory.IsInStock = inventory.IsInStock
 	dataInventory.CreatedAt = inventory.CreatedAt

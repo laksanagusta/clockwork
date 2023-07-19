@@ -18,6 +18,7 @@ type Product struct {
 	Inventory    Inventory
 	CategoryID   uint
 	Category     Category
+	Attributes   []Attribute `gorm:"many2many:product_attributes;"`
 	Images       []Image
 }
 

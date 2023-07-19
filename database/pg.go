@@ -34,11 +34,14 @@ func (d database) Connect() *gorm.DB {
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	db.AutoMigrate(
+		&model.AttributeItem{},
 		&model.User{},
 		&model.Product{},
 		&model.Order{},
-		&model.OrderItem{},
+		&model.Cart{},
+		&model.CartItem{},
 		&model.Category{},
+		&model.Customer{},
 		&model.Image{},
 		&model.Inventory{},
 		&model.Address{},

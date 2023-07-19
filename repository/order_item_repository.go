@@ -6,93 +6,93 @@ import (
 	"gorm.io/gorm"
 )
 
-type OrderItemRepository interface {
-	Create(orderItem model.OrderItem) (model.OrderItem, error)
-	Update(orderItem model.OrderItem) (model.OrderItem, error)
-	FindById(orderItemId int) (model.OrderItem, error)
-	FindByCode(code string) (model.OrderItem, error)
-	FindAll(page int, page_size int, q string) ([]model.OrderItem, error)
-	Delete(orderItemId int) (model.OrderItem, error)
-	FindByOrderId(orderId int) ([]model.OrderItem, error)
-	FindByProductId(productId int) ([]model.OrderItem, error)
+type CartItemRepository interface {
+	Create(cartItem model.CartItem) (model.CartItem, error)
+	Update(cartItem model.CartItem) (model.CartItem, error)
+	FindById(cartItemId int) (model.CartItem, error)
+	FindByCode(code string) (model.CartItem, error)
+	FindAll(page int, page_size int, q string) ([]model.CartItem, error)
+	Delete(cartItemId int) (model.CartItem, error)
+	FindByOrderId(orderId int) ([]model.CartItem, error)
+	FindByProductId(productId int) ([]model.CartItem, error)
 }
 
-type orderItemRepository struct {
+type cartItemRepository struct {
 	db *gorm.DB
 }
 
-func NewOrderItemRepository(db *gorm.DB) OrderItemRepository {
-	return &orderItemRepository{db}
+func NewCartItemRepository(db *gorm.DB) CartItemRepository {
+	return &cartItemRepository{db}
 }
 
-func (pr *orderItemRepository) Create(orderItem model.OrderItem) (model.OrderItem, error) {
-	err := pr.db.Create(&orderItem).Error
+func (pr *cartItemRepository) Create(cartItem model.CartItem) (model.CartItem, error) {
+	err := pr.db.Create(&cartItem).Error
 
 	if err != nil {
-		return orderItem, err
+		return cartItem, err
 	}
 
-	return orderItem, nil
+	return cartItem, nil
 }
 
-func (pr *orderItemRepository) Update(orderItem model.OrderItem) (model.OrderItem, error) {
-	err := pr.db.Save(&orderItem).Error
+func (pr *cartItemRepository) Update(cartItem model.CartItem) (model.CartItem, error) {
+	err := pr.db.Save(&cartItem).Error
 
 	if err != nil {
-		return orderItem, err
+		return cartItem, err
 	}
 
-	return orderItem, nil
+	return cartItem, nil
 }
 
-func (pr *orderItemRepository) FindById(orderItemId int) (model.OrderItem, error) {
-	orderItem := model.OrderItem{}
-	err := pr.db.Preload("order").First(&orderItem, orderItemId).Error
+func (pr *cartItemRepository) FindById(cartItemId int) (model.CartItem, error) {
+	cartItem := model.CartItem{}
+	err := pr.db.Preload("order").First(&cartItem, cartItemId).Error
 
 	if err != nil {
-		return orderItem, err
+		return cartItem, err
 	}
 
-	return orderItem, nil
+	return cartItem, nil
 }
 
-func (pr *orderItemRepository) FindByCode(code string) (model.OrderItem, error) {
-	orderItem := model.OrderItem{}
-	err := pr.db.Where("code = ?", code).Find(&orderItem).Error
+func (pr *cartItemRepository) FindByCode(code string) (model.CartItem, error) {
+	cartItem := model.CartItem{}
+	err := pr.db.Where("code = ?", code).Find(&cartItem).Error
 
 	if err != nil {
-		return orderItem, err
+		return cartItem, err
 	}
 
-	return orderItem, nil
+	return cartItem, nil
 }
 
-func (pr *orderItemRepository) FindByOrderId(orderId int) ([]model.OrderItem, error) {
-	var orderItem []model.OrderItem
+func (pr *cartItemRepository) FindByOrderId(orderId int) ([]model.CartItem, error) {
+	var cartItem []model.CartItem
 
-	err := pr.db.Where("orderId = ?", orderId).Find(&orderItem).Error
+	err := pr.db.Where("orderId = ?", orderId).Find(&cartItem).Error
 
 	if err != nil {
-		return orderItem, err
+		return cartItem, err
 	}
 
-	return orderItem, nil
+	return cartItem, nil
 }
 
-func (pr *orderItemRepository) FindByProductId(productId int) ([]model.OrderItem, error) {
-	var orderItem []model.OrderItem
+func (pr *cartItemRepository) FindByProductId(productId int) ([]model.CartItem, error) {
+	var cartItem []model.CartItem
 
-	err := pr.db.Where("productId = ?", productId).Find(&orderItem).Error
+	err := pr.db.Where("productId = ?", productId).Find(&cartItem).Error
 
 	if err != nil {
-		return orderItem, err
+		return cartItem, err
 	}
 
-	return orderItem, nil
+	return cartItem, nil
 }
 
-func (pr *orderItemRepository) FindAll(page int, pageSize int, q string) ([]model.OrderItem, error) {
-	var orderItem []model.OrderItem
+func (pr *cartItemRepository) FindAll(page int, pageSize int, q string) ([]model.CartItem, error) {
+	var cartItem []model.CartItem
 
 	querydb := pr.db.Offset(page).Limit(pageSize).Where("is_deleted = ?", 0)
 
@@ -100,21 +100,21 @@ func (pr *orderItemRepository) FindAll(page int, pageSize int, q string) ([]mode
 		querydb.Where("title LIKE ?", "%"+q+"%")
 	}
 
-	err := querydb.Find(&orderItem).Error
+	err := querydb.Find(&cartItem).Error
 	if err != nil {
-		return orderItem, err
+		return cartItem, err
 	}
 
-	return orderItem, nil
+	return cartItem, nil
 }
 
-func (pr *orderItemRepository) Delete(orderItemId int) (model.OrderItem, error) {
-	var orderItem model.OrderItem
-	err := pr.db.Model(&orderItem).Where("id = ?", orderItemId).Update("is_deleted", 1).Error
+func (pr *cartItemRepository) Delete(cartItemId int) (model.CartItem, error) {
+	var cartItem model.CartItem
+	err := pr.db.Model(&cartItem).Where("id = ?", cartItemId).Update("is_deleted", 1).Error
 
 	if err != nil {
-		return orderItem, err
+		return cartItem, err
 	}
 
-	return orderItem, nil
+	return cartItem, nil
 }

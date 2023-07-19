@@ -41,8 +41,12 @@ func (r router) RegisterAPI() *gin.Engine {
 	productRepository := repository.NewProductRepository(r.db)
 	orderRepository := repository.NewOrderRepository(r.db)
 	inventoryRepository := repository.NewInventoryRepository(r.db)
-	orderItemRepository := repository.NewOrderItemRepository(r.db)
+	cartRepository := repository.NewCartRepository(r.db)
+	cartItemRepository := repository.NewCartItemRepository(r.db)
 	categoryRepository := repository.NewCategoryRepository(r.db)
+	attributeRepository := repository.NewAttributeRepository(r.db)
+	attributeItemRepository := repository.NewAttributeItemRepository(r.db)
+	cartItemAttributeItemRepository := repository.NewCartItemAttributeItemRepository(r.db)
 
 	userService := service.NewUserService(userRepository)
 	customerService := service.NewCustomerService(customerRepository)
@@ -50,8 +54,20 @@ func (r router) RegisterAPI() *gin.Engine {
 	productService := service.NewProductService(productRepository, categoryRepository, inventoryRepository)
 	midtransService := service.NewMidtransService(config.GetConfig(), orderRepository)
 	orderService := service.NewOrderService(orderRepository, midtransService)
-	inventoryService := service.NewInventoryService(inventoryRepository, orderItemRepository)
-	orderItemService := service.NewOrderItemService(inventoryService, orderRepository, orderItemRepository, inventoryRepository)
+	inventoryService := service.NewInventoryService(inventoryRepository, cartItemRepository)
+	cartItemAttributeItemService := service.NewCartItemAttributeItemService(cartItemAttributeItemRepository)
+	cartService := service.NewCartService(cartRepository)
+	cartItemService := service.NewCartItemService(
+		inventoryService,
+		cartRepository,
+		cartItemRepository,
+		inventoryRepository,
+		cartItemAttributeItemRepository,
+		cartItemAttributeItemService,
+		cartService,
+	)
+	attributeService := service.NewAttributeService(attributeRepository)
+	attributeItemService := service.NewAttributeItemService(attributeItemRepository)
 
 	userController := controller.NewUserController(userService, authService)
 	customerController := controller.NewCustomerController(customerService, authService)
@@ -59,9 +75,12 @@ func (r router) RegisterAPI() *gin.Engine {
 	productController := controller.NewProductController(productService)
 	orderController := controller.NewOrderController(orderService)
 	inventoryController := controller.NewInventoryController(inventoryService)
-	orderItemController := controller.NewOrderItemController(orderItemService)
+	cartController := controller.NewCartController(cartService)
+	cartItemController := controller.NewCartItemController(cartItemService)
 	categoryService := service.NewCategoryService(categoryRepository)
 	categoryController := controller.NewCategoryController(categoryService)
+	attributeController := controller.NewAttributeController(attributeService)
+	attributeItemController := controller.NewAttributeItemController(attributeItemService)
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
@@ -117,9 +136,23 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.GET("/inventories/product-id/:code", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.FindByProductId)
 	api.GET("/inventories", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.FindAll)
 
-	api.POST("/order-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderItemController.Create)
-	api.PUT("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderItemController.Update)
-	api.DELETE("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderItemController.Delete)
+	api.POST("/order-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemController.Create)
+	api.PUT("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemController.Update)
+	api.DELETE("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemController.Delete)
+
+	api.POST("/attributes", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeController.Create)
+	api.PUT("/attributes/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeController.Update)
+	api.DELETE("/attributes/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeController.Delete)
+	api.GET("/attributes/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeController.FindById)
+	api.GET("/attributes", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeController.FindAll)
+
+	api.POST("/attribute-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeItemController.Create)
+	api.PUT("/attribute-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeItemController.Update)
+	api.DELETE("/attribute-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeItemController.Delete)
+	api.GET("/attribute-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeItemController.FindById)
+	api.GET("/attribute-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeItemController.FindAll)
+
+	api.GET("/carts/active", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), cartController.CheckActiveCart)
 
 	return router
 }

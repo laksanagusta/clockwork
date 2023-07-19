@@ -6,10 +6,10 @@ import (
 )
 
 type Order struct {
-	GrandTotal int         `json:"grandTotal"`
-	OrderItem  []OrderItem `json:"orderItem"`
-	CreatedAt  time.Time   `json:"createdAt"`
-	UpdatedAt  time.Time   `json:"updatedAt"`
+	GrandTotal int       `json:"grandTotal"`
+	Cart       Cart      `json:"cart"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
 }
 
 func FormatOrder(order model.Order) Order {
@@ -18,11 +18,7 @@ func FormatOrder(order model.Order) Order {
 	dataOrder.GrandTotal = order.GrandTotal
 	dataOrder.CreatedAt = order.CreatedAt
 	dataOrder.UpdatedAt = order.UpdatedAt
-
-	for _, valueOrderItem := range order.OrderItem {
-		newOrderItem := FormatOrderItem(valueOrderItem)
-		dataOrder.OrderItem = append(dataOrder.OrderItem, newOrderItem)
-	}
+	dataOrder.Cart = FormatCart(order.Cart)
 
 	return dataOrder
 }
