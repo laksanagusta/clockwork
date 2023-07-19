@@ -29,10 +29,10 @@ func NewCartController(service service.CartService) CartControllerInterface {
 	return &cartController{service}
 }
 
-func (cartController *cartController) Create(c *gin.Context) {
-	customerId := c.MustGet("curentCustomer").(model.Customer).ID
+func (cartCN *cartController) Create(c *gin.Context) {
+	customerId := c.MustGet("currentCustomer").(model.Customer).ID
 
-	cart, err := cartController.service.Create(int(customerId))
+	cart, err := cartCN.service.Create(int(customerId))
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.SAVE_FAILED_MESSAGE)
 		return
@@ -43,7 +43,7 @@ func (cartController *cartController) Create(c *gin.Context) {
 	return
 }
 
-func (cartController *cartController) Update(c *gin.Context) {
+func (cartCN *cartController) Update(c *gin.Context) {
 	var inputID request.CartFindById
 
 	err := c.ShouldBindUri(&inputID)
@@ -59,7 +59,7 @@ func (cartController *cartController) Update(c *gin.Context) {
 		return
 	}
 
-	updatedCart, err := cartController.service.Update(inputID, inputData)
+	updatedCart, err := cartCN.service.Update(inputID, inputData)
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.UPDATE_FAILED_MESSAGE)
 		return
@@ -69,7 +69,7 @@ func (cartController *cartController) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (cartController *cartController) FindById(c *gin.Context) {
+func (cartCN *cartController) FindById(c *gin.Context) {
 	var input request.CartFindById
 
 	err := c.ShouldBindUri(&input)
@@ -77,7 +77,7 @@ func (cartController *cartController) FindById(c *gin.Context) {
 		helper.ErrorValidation(err, c, helper.VALIDATION_ERROR_MESSAGE)
 	}
 
-	cart, err := cartController.service.FindById(input.ID)
+	cart, err := cartCN.service.FindById(input.ID)
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.FAILED_GET_DATA_MESSAGE)
 	}
@@ -86,12 +86,12 @@ func (cartController *cartController) FindById(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (cartController *cartController) FindAll(c *gin.Context) {
+func (cartCN *cartController) FindAll(c *gin.Context) {
 	q := c.Request.URL.Query()
 	page, _ := strconv.Atoi(q.Get("page"))
 	pageSize, _ := strconv.Atoi(q.Get("limit"))
 	s := q.Get("q")
-	carts, err := cartController.service.FindAll(page, pageSize, s)
+	carts, err := cartCN.service.FindAll(page, pageSize, s)
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.FAILED_GET_DATA_MESSAGE)
 	}
@@ -100,7 +100,7 @@ func (cartController *cartController) FindAll(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (cartController *cartController) Delete(c *gin.Context) {
+func (cartCN *cartController) Delete(c *gin.Context) {
 	var input request.CartFindById
 	err := c.ShouldBindUri(&input)
 
@@ -112,7 +112,7 @@ func (cartController *cartController) Delete(c *gin.Context) {
 		return
 	}
 
-	cart, err := cartController.service.Delete(input.ID)
+	cart, err := cartCN.service.Delete(input.ID)
 	if err != nil {
 		response := helper.APIResponse("Failed to delete cart", http.StatusBadRequest, "error", nil)
 		c.JSON(http.StatusBadRequest, response)
@@ -123,9 +123,9 @@ func (cartController *cartController) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (cc *cartController) CheckActiveCart(c *gin.Context) {
-	customerId := c.MustGet("currentCustomer").(int)
-	cart, err := cc.service.CheckActiveCart(customerId)
+func (cartCN *cartController) CheckActiveCart(c *gin.Context) {
+	customerId := c.MustGet("currentCustomer").(model.Customer).ID
+	cart, err := cartCN.service.CheckActiveCart(int(customerId))
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.FAILED_GET_DATA_MESSAGE)
 		return

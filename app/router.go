@@ -35,10 +35,30 @@ func (r router) RegisterAPI() *gin.Engine {
 	authService := auth.NewService(*config.GetConfig())
 	authMiddleware := middleware.NewAuthMiddleware()
 
+	// exampleTrue := new(bool)
+	// *exampleTrue = true
+
+	// exampleFalse := new(bool)
+	// *exampleFalse = false
+
+	// productData := model.Product{
+	// 	Title:        "test",
+	// 	Description:  "test",
+	// 	SerialNumber: "aaaxxwww",
+	// 	UnitPrice:    20000,
+	// 	UserID:       1,
+	// 	InventoryID:  1,
+	// 	CategoryID:   2,
+	// 	Attributes:   [{"id" : 1}]
+	// }
+
+	// err := r.db.Create(&productData).Error
+
 	userRepository := repository.NewRepository(r.db)
 	customerRepository := repository.NewCustomerRepository(r.db)
 	addressRepository := repository.NewAddressRepository(r.db)
 	productRepository := repository.NewProductRepository(r.db)
+	productAttributeRepository := repository.NewProductAttributeRepository(r.db)
 	orderRepository := repository.NewOrderRepository(r.db)
 	inventoryRepository := repository.NewInventoryRepository(r.db)
 	cartRepository := repository.NewCartRepository(r.db)
@@ -51,7 +71,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	userService := service.NewUserService(userRepository)
 	customerService := service.NewCustomerService(customerRepository)
 	addressService := service.NewAddressService(addressRepository, customerRepository)
-	productService := service.NewProductService(productRepository, categoryRepository, inventoryRepository)
+	productService := service.NewProductService(productRepository, categoryRepository, inventoryRepository, productAttributeRepository)
 	midtransService := service.NewMidtransService(config.GetConfig(), orderRepository)
 	orderService := service.NewOrderService(orderRepository, midtransService)
 	inventoryService := service.NewInventoryService(inventoryRepository, cartItemRepository)
@@ -152,7 +172,8 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.GET("/attribute-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeItemController.FindById)
 	api.GET("/attribute-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeItemController.FindAll)
 
-	api.GET("/carts/active", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), cartController.CheckActiveCart)
+	api.GET("/carts/active", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartController.CheckActiveCart)
+	api.POST("/carts", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartController.Create)
 
 	return router
 }

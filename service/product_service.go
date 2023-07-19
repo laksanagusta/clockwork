@@ -18,20 +18,23 @@ type ProductService interface {
 }
 
 type productService struct {
-	repository    repository.ProductRepository
-	categoryRepo  repository.CategoryRepository
-	inventoryRepo repository.InventoryRepository
+	repository      repository.ProductRepository
+	categoryRepo    repository.CategoryRepository
+	inventoryRepo   repository.InventoryRepository
+	productAttrRepo repository.ProductAttributeRepository
 }
 
 func NewProductService(
 	repository repository.ProductRepository,
 	categoryRepo repository.CategoryRepository,
 	inventoryRepo repository.InventoryRepository,
+	productAttrRepo repository.ProductAttributeRepository,
 ) ProductService {
 	return &productService{
 		repository,
 		categoryRepo,
 		inventoryRepo,
+		productAttrRepo,
 	}
 }
 
@@ -80,6 +83,22 @@ func (s *productService) Create(request request.ProductCreateInput) (model.Produ
 		return newProduct, err
 	}
 
+	productAttributes := []model.ProductAttribute{}
+
+	for _, value := range request.Attributes {
+		productAttribute := model.ProductAttribute{
+			ProductID:   int(newProduct.ID),
+			AttributeID: value,
+		}
+
+		productAttributes = append(productAttributes, productAttribute)
+	}
+
+	err = s.productAttrRepo.CreateMany(productAttributes)
+	if err != nil {
+		return newProduct, err
+	}
+
 	getNewProduct, err := s.repository.FindById(int(newProduct.ID))
 	if err != nil {
 		return getNewProduct, err
@@ -115,6 +134,24 @@ func (s *productService) Update(inputID request.ProductFindById, request request
 	}
 
 	updatedProduct, err := s.repository.Update(product)
+	if err != nil {
+		return updatedProduct, err
+	}
+
+	s.productAttrRepo.DeleteByProductId(int(updatedProduct.ID))
+
+	productAttributes := []model.ProductAttribute{}
+
+	for _, value := range request.Attributes {
+		productAttribute := model.ProductAttribute{
+			ProductID:   inputID.ID,
+			AttributeID: value,
+		}
+
+		productAttributes = append(productAttributes, productAttribute)
+	}
+
+	err = s.productAttrRepo.CreateMany(productAttributes)
 	if err != nil {
 		return updatedProduct, err
 	}

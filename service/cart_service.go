@@ -36,7 +36,8 @@ func (s *cartService) Create(customerId int) (model.Cart, error) {
 	cart := model.Cart{
 		BaseAmount: 0,
 		TotalItem:  0,
-		Status:     "ACTIVE",
+		Status:     "active",
+		CustomerID: customerId,
 	}
 
 	newCart, err := s.repository.Create(cart)
