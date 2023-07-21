@@ -6,17 +6,17 @@ import (
 )
 
 type Product struct {
-	ID           uint      `json:"id"`
-	Title        string    `json:"title"`
-	Description  string    `json:"description"`
-	SerialNumber string    `json:"serialNumber"`
-	UnitPrice    int       `json:"unitPrice"`
-	Inventory    Inventory `json:"inventory"`
-	Category     Category  `json:"category"`
-	Images       []Image   `jsom:"images"`
-	User         User      `json:"user"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
+	ID           uint        `json:"id"`
+	Title        string      `json:"title"`
+	Description  string      `json:"description"`
+	SerialNumber string      `json:"serialNumber"`
+	UnitPrice    int         `json:"unitPrice"`
+	Category     Category    `json:"category"`
+	Attributes   []Attribute `json:"attributes"`
+	Images       []Image     `jsom:"images"`
+	User         User        `json:"user"`
+	CreatedAt    time.Time   `json:"createdAt"`
+	UpdatedAt    time.Time   `json:"updatedAt"`
 }
 
 func FormatProduct(product model.Product) Product {
@@ -30,16 +30,10 @@ func FormatProduct(product model.Product) Product {
 	dataProduct.CreatedAt = product.CreatedAt
 	dataProduct.UpdatedAt = product.UpdatedAt
 
-	if product.Inventory.ID != 0 {
-		dataProduct.Inventory = FormatInventory(product.Inventory)
-	}
+	dataProduct.Attributes = FormatAttributes(product.Attributes)
 
 	if product.User.ID != 0 {
 		dataProduct.User = FormatUser(product.User, "")
-	}
-
-	if product.Inventory.ID != 0 {
-		dataProduct.Inventory = FormatInventory(product.Inventory)
 	}
 
 	if product.Category.ID != 0 {

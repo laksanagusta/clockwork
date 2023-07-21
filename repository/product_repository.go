@@ -45,9 +45,43 @@ func (pr *productRepository) Update(product model.Product) (model.Product, error
 	return product, nil
 }
 
+type productQueryResult struct {
+	ProductTitle string
+}
+
 func (pr *productRepository) FindById(productId int) (model.Product, error) {
 	product := model.Product{}
-	err := pr.db.Preload("Inventory").Preload("User").Preload("Category").Preload("Images").First(&product, productId).Error
+	attributes := []model.Attribute{}
+	// err := pr.db.Table("products").
+	// 	Select("products.title as product_title, products.unit_price as products_unit_price, attributes.title as attributes_title, attribute_items.title as attribute_items_title").
+	// 	Joins("LEFT JOIN product_attributes on product_attributes.product_id = products.id").
+	// 	Joins("LEFT JOIN attributes on attributes.id = product_attributes.attribute_id").
+	// 	Joins("LEFT JOIN attribute_items on attribute_items.attribute_id = attributes.id").
+	// 	Where("products.id = ?", productId).
+	// 	Find(&result).Error
+
+	err := pr.db.Preload("Category").Preload("User").Preload("Images").Find(&product, productId).Error
+	if err != nil {
+		return product, err
+	}
+
+	err = pr.db.Table("attributes").
+		Select("attributes.*").
+		Joins("JOIN product_attributes on attributes.id = product_attributes.attribute_id").
+		Where("product_attributes.product_id = ?", productId).
+		Find(&attributes).Error
+
+	for k, v := range attributes {
+		attributeItems := []model.AttributeItem{}
+		err := pr.db.Where("attribute_id = ?", v.ID).Find(&attributeItems).Error
+		if err != nil {
+			return product, err
+		}
+
+		attributes[k].AttributeItem = attributeItems
+	}
+
+	product.Attributes = attributes
 
 	if err != nil {
 		return product, err
