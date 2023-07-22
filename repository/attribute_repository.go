@@ -13,6 +13,7 @@ type AttributeRepository interface {
 	FindById(attributeId int) (model.Attribute, error)
 	FindAll(page int, page_size int, q string) ([]model.Attribute, error)
 	Delete(attributeId int) (model.Attribute, error)
+	FindAttributeWithAttributeItemByProductId(productId int) ([]model.Attribute, error)
 }
 
 type attributeRepository struct {
@@ -88,4 +89,30 @@ func (pr *attributeRepository) Delete(attributeId int) (model.Attribute, error) 
 	}
 
 	return attribute, nil
+}
+
+func (pr *attributeRepository) FindAttributeWithAttributeItemByProductId(productId int) ([]model.Attribute, error) {
+	attributes := []model.Attribute{}
+
+	err := pr.db.Table("attributes").
+		Select("attributes.*").
+		Joins("JOIN product_attributes on attributes.id = product_attributes.attribute_id").
+		Where("product_attributes.product_id = ?", productId).
+		Find(&attributes).Error
+
+	if err != nil {
+		return attributes, err
+	}
+
+	for k, v := range attributes {
+		attributeItems := []model.AttributeItem{}
+		err := pr.db.Where("attribute_id = ?", v.ID).Find(&attributeItems).Error
+		if err != nil {
+			return attributes, err
+		}
+
+		attributes[k].AttributeItem = attributeItems
+	}
+
+	return attributes, nil
 }

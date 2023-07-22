@@ -1,19 +1,15 @@
 package request
 
 type CartItemCreateRequest struct {
-	Qty           int `json:"qty" validate:"required" binding:"required"`
-	UnitPrice     int `json:"unitPrice" validate:"required" binding:"required,numeric"`
-	SubTotal      int `json:"subTotal" validate:"required" binding:"required,numeric"`
-	Note          string
+	Qty           int    `json:"qty" validate:"required" binding:"required"`
+	Note          string `json:"note" validate:"required" binding:"required"`
 	AttributeItem []AttributeItem
-	ProductID     uint `json:"productId" validate:"required" binding:"required"`
-	OrderID       uint `json:"orderId" validate:"required" binding:"required"`
+	ProductID     uint `json:"productId" validate:"required" binding:"required,numeric"`
+	CartID        uint `json:"cartId" validate:"required" binding:"required,numeric"`
 }
 
 type CartItemUpdateRequest struct {
 	Qty           int    `json:"qty" validate:"required" binding:"required"`
-	UnitPrice     int    `json:"unitPrice" validate:"required" binding:"required,numeric"`
-	SubTotal      int    `json:"subTotal" validate:"required" binding:"required,numeric"`
 	Note          string `json:"note" validate:"required" binding:"required"`
 	AttributeItem []AttributeItem
 }

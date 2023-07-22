@@ -1,6 +1,7 @@
 package service
 
 import (
+	"clockwork-server/helper"
 	"clockwork-server/model"
 	"clockwork-server/repository"
 	"clockwork-server/request"
@@ -24,6 +25,8 @@ type cartItemService struct {
 	cartItemAttributeItemRepository repository.CartItemAttributeItemRepository
 	cartItemAttributeItemService    CartItemAttributeItemService
 	cartService                     CartService
+	productRepo                     repository.ProductRepository
+	helper                          helper.CartItemHelper
 }
 
 func NewCartItemService(inventoryService InventoryService,
@@ -33,6 +36,8 @@ func NewCartItemService(inventoryService InventoryService,
 	cartItemAttributeItemRepository repository.CartItemAttributeItemRepository,
 	cartItemAttributeItemService CartItemAttributeItemService,
 	cartService CartService,
+	productRepo repository.ProductRepository,
+	helper helper.CartItemHelper,
 ) CartItemService {
 	return &cartItemService{
 		repository,
@@ -42,16 +47,49 @@ func NewCartItemService(inventoryService InventoryService,
 		cartItemAttributeItemRepository,
 		cartItemAttributeItemService,
 		cartService,
+		productRepo,
+		helper,
 	}
 }
 
 func (s *cartItemService) Create(cartItemReq request.CartItemCreateRequest, customerId int) (model.Cart, error) {
+
 	cartItem := model.CartItem{}
 
+	product, err := s.productRepo.FindById(int(cartItemReq.ProductID))
+	if err != nil {
+		return model.Cart{}, err
+	}
+
 	cartItem.Qty = cartItemReq.Qty
-	cartItem.UnitPrice = cartItemReq.UnitPrice
-	cartItem.SubTotal = cartItemReq.Qty * cartItemReq.UnitPrice
+	cartItem.UnitPrice = product.UnitPrice
+	cartItem.SubTotal = cartItemReq.Qty * product.UnitPrice
 	cartItem.ProductID = cartItemReq.ProductID
+	cartItem.Note = cartItemReq.Note
+	cartItem.CartID = cartItemReq.CartID
+
+	attributeItemsSortedId := s.helper.SortAttributeItemId(cartItemReq.AttributeItem)
+
+	cartItemExist, err := s.repository.FindByAttributeItemSorted(attributeItemsSortedId)
+	if cartItemExist.ID != 0 {
+		cartItemId := request.CartItemFindById{
+			ID: int(cartItemExist.ID),
+		}
+
+		updateCartItem, err := s.Update(cartItemId, request.CartItemUpdateRequest{
+			Qty:           cartItemReq.Qty,
+			Note:          cartItemReq.Note,
+			AttributeItem: cartItemReq.AttributeItem,
+		}, customerId)
+
+		if err != nil {
+			return updateCartItem, err
+		}
+
+		return updateCartItem, nil
+	}
+
+	cartItem.AttributeItemSorted = attributeItemsSortedId
 
 	// inventory, err := s.inventoryRepository.FindByProductId(int(cartItemReq.ProductID))
 	// if err != nil {
@@ -105,9 +143,14 @@ func (s *cartItemService) Update(inputID request.CartItemFindById, cartItemReq r
 
 	cart = cartItem.Cart
 
+	product, err := s.productRepo.FindById(int(cartItem.ProductID))
+	if err != nil {
+		return model.Cart{}, err
+	}
+
 	cartItem.Qty = cartItemReq.Qty
-	cartItem.UnitPrice = cartItemReq.UnitPrice
-	cartItem.SubTotal = cartItemReq.Qty * cartItemReq.UnitPrice
+	cartItem.UnitPrice = product.UnitPrice
+	cartItem.SubTotal = cartItemReq.Qty * product.UnitPrice
 
 	_, err = s.repository.Update(cartItem)
 	if err != nil {

@@ -35,6 +35,7 @@ func (d database) Connect() *gorm.DB {
 
 	db.AutoMigrate(
 		&model.AttributeItem{},
+		&model.CartItemAttributeItem{},
 		&model.User{},
 		&model.Product{},
 		&model.Order{},

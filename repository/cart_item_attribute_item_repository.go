@@ -62,7 +62,8 @@ func (pr *cartItemAttributeItemRepository) FindById(cartItemAttributeItemId int)
 }
 
 func (pr *cartItemAttributeItemRepository) DeleteByCartItemId(cartItemId uint) error {
-	err := pr.db.Where("order_item_id = ?", cartItemId).Delete(nil).Error
+	cartItemAttributeItem := model.CartItemAttributeItem{}
+	err := pr.db.Where("cart_item_id = ?", cartItemId).Delete(&cartItemAttributeItem).Error
 
 	if err != nil {
 		return err

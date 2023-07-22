@@ -15,6 +15,7 @@ type CartItemRepository interface {
 	Delete(cartItemId int) (model.CartItem, error)
 	FindByOrderId(orderId int) ([]model.CartItem, error)
 	FindByProductId(productId int) ([]model.CartItem, error)
+	FindByAttributeItemSorted(attributeItemSorted string) (model.CartItem, error)
 }
 
 type cartItemRepository struct {
@@ -47,7 +48,7 @@ func (pr *cartItemRepository) Update(cartItem model.CartItem) (model.CartItem, e
 
 func (pr *cartItemRepository) FindById(cartItemId int) (model.CartItem, error) {
 	cartItem := model.CartItem{}
-	err := pr.db.Preload("order").First(&cartItem, cartItemId).Error
+	err := pr.db.First(&cartItem, cartItemId).Error
 
 	if err != nil {
 		return cartItem, err
@@ -101,6 +102,16 @@ func (pr *cartItemRepository) FindAll(page int, pageSize int, q string) ([]model
 	}
 
 	err := querydb.Find(&cartItem).Error
+	if err != nil {
+		return cartItem, err
+	}
+
+	return cartItem, nil
+}
+
+func (r *cartItemRepository) FindByAttributeItemSorted(attributeItemSorted string) (model.CartItem, error) {
+	cartItem := model.CartItem{}
+	err := r.db.Where("attribute_item_sorted = ?", attributeItemSorted).First(&cartItem).Error
 	if err != nil {
 		return cartItem, err
 	}

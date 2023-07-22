@@ -29,7 +29,7 @@ func NewCartItemController(service service.CartItemService) CartItemControllerIn
 }
 
 func (cartItemController *cartItemController) Create(c *gin.Context) {
-	customerId := c.MustGet("curentCustomer").(model.Customer).ID
+	customerId := c.MustGet("currentCustomer").(model.Customer).ID
 
 	var input request.CartItemCreateRequest
 	err := c.ShouldBindJSON(&input)

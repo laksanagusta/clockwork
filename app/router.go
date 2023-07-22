@@ -4,9 +4,11 @@ import (
 	"clockwork-server/auth"
 	"clockwork-server/config"
 	"clockwork-server/controller"
+	"clockwork-server/helper"
 	"clockwork-server/middleware"
 	"clockwork-server/repository"
 	"clockwork-server/service"
+	"fmt"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -54,10 +56,94 @@ func (r router) RegisterAPI() *gin.Engine {
 
 	// err := r.db.Create(&productData).Error
 
+	fmt.Println("RabbitMQ in Golang: Getting started tutorial")
+
+	// connection, err := amqp.Dial("amqp://user:rabbitmq@localhost:5672/")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer connection.Close()
+
+	// fmt.Println("Successfully connected to RabbitMQ instance")
+
+	// // opening a channel over the connection established to interact with RabbitMQ
+	// channel, err := connection.Channel()
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer channel.Close()
+
+	// // declaring queue with its properties over the the channel opened
+	// queue, err := channel.QueueDeclare(
+	// 	"queue_testing", // name
+	// 	false,           // durable
+	// 	false,           // auto delete
+	// 	false,           // exclusive
+	// 	false,           // no wait
+	// 	nil,             // args
+	// )
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// body, err := json.Marshal(map[string]string{
+	// 	"Name":  "dika",
+	// 	"Hobby": "football",
+	// })
+
+	// // publishing a message
+	// err = channel.Publish(
+	// 	"",              // exchange
+	// 	"queue_testing", // key
+	// 	false,           // mandatory
+	// 	false,           // immediate
+	// 	amqp.Publishing{
+	// 		ContentType: "application/json",
+	// 		Body:        []byte(body),
+	// 	},
+	// )
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// fmt.Println("Queue status:", queue)
+	// fmt.Println("Successfully published message")
+
+	// // declaring consumer with its properties over channel opened
+	// msgs, err := channel.Consume(
+	// 	"queue_testing", // queue
+	// 	"",              // consumer
+	// 	true,            // auto ack
+	// 	false,           // exclusive
+	// 	false,           // no local
+	// 	false,           // no wait
+	// 	nil,             //args
+	// )
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// var result struct {
+	// 	Name  string
+	// 	Hobby string
+	// }
+
+	// // print consumed messages from queue
+	// forever := make(chan bool)
+	// go func() {
+	// 	for msg := range msgs {
+	// 		err = json.Unmarshal(msg.Body, &result)
+	// 		fmt.Printf("Received Message: %s\n", result.Hobby)
+	// 	}
+	// }()
+
+	// fmt.Println("Waiting for messages...")
+	// <-forever
+	cartItemHelper := helper.NewCartItemHelper()
+
 	userRepository := repository.NewRepository(r.db)
 	customerRepository := repository.NewCustomerRepository(r.db)
 	addressRepository := repository.NewAddressRepository(r.db)
-	productRepository := repository.NewProductRepository(r.db)
 	productAttributeRepository := repository.NewProductAttributeRepository(r.db)
 	orderRepository := repository.NewOrderRepository(r.db)
 	inventoryRepository := repository.NewInventoryRepository(r.db)
@@ -65,13 +151,14 @@ func (r router) RegisterAPI() *gin.Engine {
 	cartItemRepository := repository.NewCartItemRepository(r.db)
 	categoryRepository := repository.NewCategoryRepository(r.db)
 	attributeRepository := repository.NewAttributeRepository(r.db)
+	productRepository := repository.NewProductRepository(r.db)
 	attributeItemRepository := repository.NewAttributeItemRepository(r.db)
 	cartItemAttributeItemRepository := repository.NewCartItemAttributeItemRepository(r.db)
 
 	userService := service.NewUserService(userRepository)
 	customerService := service.NewCustomerService(customerRepository)
 	addressService := service.NewAddressService(addressRepository, customerRepository)
-	productService := service.NewProductService(productRepository, categoryRepository, inventoryRepository, productAttributeRepository)
+	productService := service.NewProductService(productRepository, categoryRepository, inventoryRepository, productAttributeRepository, attributeRepository)
 	midtransService := service.NewMidtransService(config.GetConfig(), orderRepository)
 	orderService := service.NewOrderService(orderRepository, midtransService)
 	inventoryService := service.NewInventoryService(inventoryRepository, cartItemRepository)
@@ -85,6 +172,8 @@ func (r router) RegisterAPI() *gin.Engine {
 		cartItemAttributeItemRepository,
 		cartItemAttributeItemService,
 		cartService,
+		productRepository,
+		cartItemHelper,
 	)
 	attributeService := service.NewAttributeService(attributeRepository)
 	attributeItemService := service.NewAttributeItemService(attributeItemRepository)
@@ -174,6 +263,9 @@ func (r router) RegisterAPI() *gin.Engine {
 
 	api.GET("/carts/active", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartController.CheckActiveCart)
 	api.POST("/carts", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartController.Create)
+
+	api.POST("/cart-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemController.Create)
+	api.POST("/cart-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemController.Update)
 
 	return router
 }

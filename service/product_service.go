@@ -22,6 +22,7 @@ type productService struct {
 	categoryRepo    repository.CategoryRepository
 	inventoryRepo   repository.InventoryRepository
 	productAttrRepo repository.ProductAttributeRepository
+	attributeRepo   repository.AttributeRepository
 }
 
 func NewProductService(
@@ -29,12 +30,14 @@ func NewProductService(
 	categoryRepo repository.CategoryRepository,
 	inventoryRepo repository.InventoryRepository,
 	productAttrRepo repository.ProductAttributeRepository,
+	attributeRepo repository.AttributeRepository,
 ) ProductService {
 	return &productService{
 		repository,
 		categoryRepo,
 		inventoryRepo,
 		productAttrRepo,
+		attributeRepo,
 	}
 }
 
@@ -167,6 +170,17 @@ func (s *productService) FindById(productId int) (model.Product, error) {
 
 	if product.ID == 0 {
 		return product, errors.New(PRODUCT_NOT_FOUND)
+	}
+
+	attributes, err := s.attributeRepo.FindAttributeWithAttributeItemByProductId(productId)
+	if err != nil {
+		return product, err
+	}
+
+	product.Attributes = attributes
+
+	if err != nil {
+		return product, err
 	}
 
 	return product, nil
