@@ -118,11 +118,13 @@ func (_productController *productController) FindByCode(c *gin.Context) {
 }
 
 func (_productController *productController) FindAll(c *gin.Context) {
-	q := c.Request.URL.Query()
-	page, _ := strconv.Atoi(q.Get("page"))
-	pageSize, _ := strconv.Atoi(q.Get("page_size"))
-	s := q.Get("q")
-	products, err := _productController.service.FindAll(page, pageSize, s)
+	urlQuery := c.Request.URL.Query()
+	page, _ := strconv.Atoi(urlQuery.Get("page"))
+	limit, _ := strconv.Atoi(urlQuery.Get("limit"))
+	title := urlQuery.Get("title")
+	categoryId, _ := strconv.Atoi(urlQuery.Get("category_id"))
+
+	products, err := _productController.service.FindAll(page, limit, title, categoryId)
 	if err != nil {
 		helper.NotFoundResponse(err, c, helper.FAILED_GET_DATA_MESSAGE)
 		return

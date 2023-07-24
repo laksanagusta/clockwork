@@ -13,7 +13,7 @@ type ProductRepository interface {
 	Update(product model.Product) (model.Product, error)
 	FindById(productId int) (model.Product, error)
 	FindBySerialNumberAndTitle(serialNumber string, title string) (model.Product, error)
-	FindAll(page int, page_size int, q string) ([]model.Product, error)
+	FindAll(page int, page_size int, title string, categoryID int) ([]model.Product, error)
 	Delete(productId int) (model.Product, error)
 }
 
@@ -79,7 +79,7 @@ func (pr *productRepository) FindBySerialNumberAndTitle(serialNumber string, tit
 	return product, nil
 }
 
-func (pr *productRepository) FindAll(page int, limit int, q string) ([]model.Product, error) {
+func (pr *productRepository) FindAll(page int, limit int, title string, categoryID int) ([]model.Product, error) {
 	var product []model.Product
 
 	querydb := pr.db
@@ -94,8 +94,8 @@ func (pr *productRepository) FindAll(page int, limit int, q string) ([]model.Pro
 		querydb = querydb.Offset(page - 1)
 	}
 
-	if q != "" {
-		querydb = querydb.Where("lower(title) LIKE ?", "%"+q+"%")
+	if title != "" {
+		querydb = querydb.Where("lower(title) LIKE ?", "%"+title+"%")
 	}
 
 	err := querydb.Preload("Inventory").Preload("User").Preload("Category").Preload("Images").Find(&product).Error

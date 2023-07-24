@@ -13,7 +13,7 @@ type ProductService interface {
 	Update(inputID request.ProductFindById, request request.ProductUpdateInput) (model.Product, error)
 	FindById(productId int) (model.Product, error)
 	FindBySerialNumber(serialNumber string) (model.Product, error)
-	FindAll(page int, page_size int, q string) ([]model.Product, error)
+	FindAll(page int, limit int, title string, categoryID int) ([]model.Product, error)
 	Delete(productId int) (model.Product, error)
 }
 
@@ -199,8 +199,8 @@ func (s *productService) FindBySerialNumber(serialNumber string) (model.Product,
 	return product, nil
 }
 
-func (s *productService) FindAll(page int, pageSize int, q string) ([]model.Product, error) {
-	products, err := s.repository.FindAll(page, pageSize, q)
+func (s *productService) FindAll(page int, limit int, title string, categoryID int) ([]model.Product, error) {
+	products, err := s.repository.FindAll(page, limit, title, categoryID)
 	if err != nil {
 		return products, err
 	}

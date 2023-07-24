@@ -1,13 +1,13 @@
 package request
 
 type OrderCreateRequest struct {
-	GrandTotal        int    `json:"grandTotal" validate:"required" binding:"required"`
-	TransactionNumber string `json:"transactionNumber" validate:"required" binding:"required"`
+	CartID        int    `json:"cartId" validate:"required" binding:"required,numeric"`
+	PaymentMethod string `json:"paymentMethod" validate:"required" binding:"required"`
 }
 
 type OrderUpdateRequest struct {
-	GrandTotal        int    `json:"grandTotal" validate:"required" binding:"required"`
-	TransactionNumber string `json:"transactionNumber" validate:"required" binding:"required"`
+	CartID        int    `json:"cartId" validate:"required" binding:"required,numeric"`
+	PaymentMethod string `json:"paymentMethod" validate:"required" binding:"required"`
 }
 
 type OrderFindById struct {

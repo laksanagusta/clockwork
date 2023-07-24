@@ -3,47 +3,41 @@ package database
 import (
 	"clockwork-server/config"
 	"context"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
 type DBRedis interface {
 	setValue(context.Context, string, interface{}, int) error
-	getValue(context.Context, string) error
+	getValue(context.Context, string) ([]byte, error)
 }
 
 type dbRedis struct {
-	redisConfig config.Redis
 	redisClient redis.Client
 }
 
-func newDBRedis(redisConfig config.Redis) DBRedis {
+func NewDBRedis(config *config.Config) DBRedis {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     redisConfig.Host,
-		Password: redisConfig.Password,
+		Addr:     config.Redis.Host,
+		Password: config.Redis.Password,
 		DB:       0,
 	})
 
 	return &dbRedis{
-		redisConfig: redisConfig,
 		redisClient: *rdb,
 	}
 }
 
 func (d *dbRedis) setValue(ctx context.Context, key string, value interface{}, lifetime int) error {
-	err := d.redisClient.Set(ctx, key, value, 0)
-	if err != nil {
-		panic(err)
-	}
-
-	return nil
+	return d.redisClient.Set(ctx, key, value, 6*time.Minute).Err()
 }
 
-func (d *dbRedis) getValue(ctx context.Context, key string) error {
-	err := d.redisClient.Get(ctx, key)
+func (d *dbRedis) getValue(ctx context.Context, key string) ([]byte, error) {
+	val, err := d.redisClient.Get(ctx, key).Result()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return nil
+	return []byte(val), nil
 }

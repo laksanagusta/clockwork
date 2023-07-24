@@ -4,6 +4,7 @@ import (
 	"clockwork-server/model"
 	"clockwork-server/repository"
 	"clockwork-server/request"
+	"fmt"
 )
 
 type OrderService interface {
@@ -19,41 +20,68 @@ type OrderService interface {
 type orderService struct {
 	repository      repository.OrderRepository
 	midtransService MidtransService
+	cartRepo        repository.CartRepository
+	paymentRepo     repository.PaymentRepository
 }
 
-func NewOrderService(repository repository.OrderRepository, midtransService MidtransService) OrderService {
+func NewOrderService(repository repository.OrderRepository, midtransService MidtransService, cartRepo repository.CartRepository, paymentRepo repository.PaymentRepository) OrderService {
 	return &orderService{
 		repository,
 		midtransService,
+		cartRepo,
+		paymentRepo,
 	}
 }
 
 func (s *orderService) PlaceOrder(orderReq request.OrderCreateRequest, orderId request.OrderFindById) (model.Order, error) {
-	order, err := s.repository.FindById(orderId.ID)
+	order := model.Order{}
+
+	cart, err := s.cartRepo.FindById(orderReq.CartID)
+	if err != nil {
+		return order, err
+	}
+
+	payment, err := s.paymentRepo.Create(model.Payment{
+		PaymentMethod:   orderReq.PaymentMethod,
+		PaymentStatus:   "pending",
+		PaymentResponse: "",
+	})
+
 	if err != nil {
 		return order, err
 	}
 
 	order.Status = "waiting_for_payment"
+	order.BaseAmount = cart.BaseAmount
+	order.AdditionalChargeAmount = 0
+	order.TaxAmount = cart.BaseAmount * 11 / 100
+	order.GrandTotal = order.BaseAmount + order.TaxAmount
+	order.CartID = cart.ID
+	order.DiscountAmount = 0
+	order.SnapUrl = "aazzzdd"
+	order.PaymentID = payment.ID
+
+	padZeros, _ := fmt.Printf("%06d", cart.ID)
+	order.TransactionNumber = fmt.Sprint(padZeros)
 
 	createOrder, err := s.repository.Create(order)
 	if err != nil {
 		return order, err
 	}
 
-	snapUrl, err := s.midtransService.GenerateSnapUrl(createOrder)
-	if err != nil {
-		return createOrder, err
-	}
+	// snapUrl, err := s.midtransService.GenerateSnapUrl(createOrder)
+	// if err != nil {
+	// 	return createOrder, err
+	// }
 
-	createOrder.SnapUrl = snapUrl
+	// createOrder.SnapUrl = snapUrl
 
-	updateOrder, err := s.repository.Update(createOrder)
-	if err != nil {
-		return createOrder, err
-	}
+	// updateOrder, err := s.repository.Update(createOrder)
+	// if err != nil {
+	// 	return createOrder, err
+	// }
 
-	return updateOrder, nil
+	return createOrder, nil
 }
 
 func (s *orderService) Create(request request.OrderCreateRequest) (model.Order, error) {
@@ -72,9 +100,6 @@ func (s *orderService) Update(inputID request.OrderFindById, request request.Ord
 	if err != nil {
 		return order, err
 	}
-
-	order.GrandTotal = request.GrandTotal
-	order.TransactionNumber = request.TransactionNumber
 
 	updatedOrder, err := s.repository.Update(order)
 	if err != nil {

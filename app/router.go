@@ -8,7 +8,6 @@ import (
 	"clockwork-server/middleware"
 	"clockwork-server/repository"
 	"clockwork-server/service"
-	"fmt"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -56,7 +55,7 @@ func (r router) RegisterAPI() *gin.Engine {
 
 	// err := r.db.Create(&productData).Error
 
-	fmt.Println("RabbitMQ in Golang: Getting started tutorial")
+	// fmt.Println("RabbitMQ in Golang: Getting started")
 
 	// connection, err := amqp.Dial("amqp://user:rabbitmq@localhost:5672/")
 	// if err != nil {
@@ -139,6 +138,11 @@ func (r router) RegisterAPI() *gin.Engine {
 
 	// fmt.Println("Waiting for messages...")
 	// <-forever
+
+	cfig := config.GetConfig()
+
+	// cacheConnection := database.NewDBRedis(cfig)
+
 	cartItemHelper := helper.NewCartItemHelper()
 
 	userRepository := repository.NewRepository(r.db)
@@ -154,13 +158,14 @@ func (r router) RegisterAPI() *gin.Engine {
 	productRepository := repository.NewProductRepository(r.db)
 	attributeItemRepository := repository.NewAttributeItemRepository(r.db)
 	cartItemAttributeItemRepository := repository.NewCartItemAttributeItemRepository(r.db)
+	paymentRepository := repository.NewPaymentRepository(r.db)
 
 	userService := service.NewUserService(userRepository)
 	customerService := service.NewCustomerService(customerRepository)
 	addressService := service.NewAddressService(addressRepository, customerRepository)
 	productService := service.NewProductService(productRepository, categoryRepository, inventoryRepository, productAttributeRepository, attributeRepository)
-	midtransService := service.NewMidtransService(config.GetConfig(), orderRepository)
-	orderService := service.NewOrderService(orderRepository, midtransService)
+	midtransService := service.NewMidtransService(cfig, orderRepository)
+	orderService := service.NewOrderService(orderRepository, midtransService, cartRepository, paymentRepository)
 	inventoryService := service.NewInventoryService(inventoryRepository, cartItemRepository)
 	cartItemAttributeItemService := service.NewCartItemAttributeItemService(cartItemAttributeItemRepository)
 	cartService := service.NewCartService(cartRepository)
@@ -265,7 +270,6 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.POST("/carts", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartController.Create)
 
 	api.POST("/cart-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemController.Create)
-	api.POST("/cart-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemController.Update)
 
 	return router
 }

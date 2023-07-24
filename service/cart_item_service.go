@@ -148,9 +148,9 @@ func (s *cartItemService) Update(inputID request.CartItemFindById, cartItemReq r
 		return model.Cart{}, err
 	}
 
-	cartItem.Qty = cartItemReq.Qty
+	cartItem.Qty += cartItemReq.Qty
 	cartItem.UnitPrice = product.UnitPrice
-	cartItem.SubTotal = cartItemReq.Qty * product.UnitPrice
+	cartItem.SubTotal = cartItem.Qty * product.UnitPrice
 
 	_, err = s.repository.Update(cartItem)
 	if err != nil {

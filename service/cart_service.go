@@ -67,6 +67,8 @@ func (s *cartService) Update(inputID request.CartFindById, req request.CartUpdat
 }
 
 func (s *cartService) RecalculateCart(cart model.Cart) model.Cart {
+	cart.BaseAmount = 0
+	cart.TotalItem = 0
 	for _, v := range cart.CartItems {
 		cart.BaseAmount += v.SubTotal
 		cart.TotalItem += 1
