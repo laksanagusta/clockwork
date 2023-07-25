@@ -4,8 +4,10 @@ import (
 	"clockwork-server/model"
 	"clockwork-server/repository"
 	"clockwork-server/request"
+	"errors"
+	"fmt"
 	"mime/multipart"
-	"path/filepath"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,26 +19,51 @@ type ImageService interface {
 
 type imageService struct {
 	imageRepo repository.ImageRepository
-	c         *gin.Context
 }
 
-func NewImageService(imageRepo repository.ImageRepository, c *gin.Context) ImageService {
-	return &imageService{imageRepo, c}
+func NewImageService(imageRepo repository.ImageRepository) ImageService {
+	return &imageService{imageRepo}
 }
 
-func (is *imageService) Create(request request.ImageCreateRequest, file *multipart.FileHeader) (model.Image, error) {
+func (s *imageService) Create(request request.ImageCreateRequest, file *multipart.FileHeader) (model.Image, error) {
 	image := model.Image{}
-	image.Url = request.Url
 
-	extension := filepath.Ext(file.Filename)
-	filename := request.ProductID + extension
+	if file.Size > 2000000 {
+		return image, errors.New("File exceeds 2mb")
+	}
 
-	err := is.c.SaveUploadedFile(file, "/image/product/"+filename)
+	images, err := s.imageRepo.GetImagesByProductId(request.ProductID)
 	if err != nil {
 		return image, err
 	}
 
-	newImage, err := is.imageRepo.Create(image)
+	if len(images) == 4 {
+		return image, errors.New("Can't add more image, image already 4, please remove some")
+	}
+
+	if len(images) > 0 && request.IsPrimary == true {
+		err = s.imageRepo.UpdateIsPrimaryFalse(request.ProductID)
+		if err != nil {
+			return image, err
+		}
+	}
+
+	// extension := filepath.Ext(file.Filename)
+	filename := file.Filename
+
+	path := fmt.Sprintf("images/%d-%s", request.ProductID, filename)
+
+	c := gin.Context{}
+	err = c.SaveUploadedFile(file, path)
+	if err != nil {
+		return image, err
+	}
+
+	image.ProductID = uint(request.ProductID)
+	image.Url = path
+	image.IsPrimary = request.IsPrimary
+
+	newImage, err := s.imageRepo.Create(image)
 	if err != nil {
 		return newImage, err
 	}
@@ -44,11 +71,21 @@ func (is *imageService) Create(request request.ImageCreateRequest, file *multipa
 	return newImage, nil
 }
 
-func (is *imageService) Remove(request request.ImageRemoveRequest) (int8, error) {
-	newImage, err := is.imageRepo.Remove(request.ID)
+func (s *imageService) Remove(request request.ImageRemoveRequest) (int8, error) {
+	image, err := s.imageRepo.FindById(request.ID)
 	if err != nil {
-		return newImage, err
+		return request.ID, err
 	}
 
-	return newImage, nil
+	err = os.Remove(image.Url)
+	if err != nil {
+		return request.ID, err
+	}
+
+	_, err = s.imageRepo.Remove(request.ID)
+	if err != nil {
+		return request.ID, err
+	}
+
+	return request.ID, nil
 }

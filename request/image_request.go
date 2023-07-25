@@ -1,8 +1,8 @@
 package request
 
 type ImageCreateRequest struct {
-	Url       string `json:"url" validate:"required" binding:"required"`
-	ProductID string `json:"productId" validate:"required" binding:"required"`
+	ProductID int  `form:"productId" validate:"required" binding:"required"`
+	IsPrimary bool `form:"isPrimary" validate:"required" binding:"required"`
 }
 
 type ImageRemoveRequest struct {

@@ -6,4 +6,5 @@ type Image struct {
 	gorm.Model
 	Url       string `gorm:"size:60;not null;" json:"url"`
 	ProductID uint
+	IsPrimary bool `gorm:"not null;" json:"isPrimary"`
 }

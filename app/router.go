@@ -147,7 +147,6 @@ func (r router) RegisterAPI() *gin.Engine {
 
 	userRepository := repository.NewRepository(r.db)
 	customerRepository := repository.NewCustomerRepository(r.db)
-	addressRepository := repository.NewAddressRepository(r.db)
 	productAttributeRepository := repository.NewProductAttributeRepository(r.db)
 	orderRepository := repository.NewOrderRepository(r.db)
 	inventoryRepository := repository.NewInventoryRepository(r.db)
@@ -159,10 +158,10 @@ func (r router) RegisterAPI() *gin.Engine {
 	attributeItemRepository := repository.NewAttributeItemRepository(r.db)
 	cartItemAttributeItemRepository := repository.NewCartItemAttributeItemRepository(r.db)
 	paymentRepository := repository.NewPaymentRepository(r.db)
+	imageRepository := repository.NewImageRepository(r.db)
 
 	userService := service.NewUserService(userRepository)
 	customerService := service.NewCustomerService(customerRepository)
-	addressService := service.NewAddressService(addressRepository, customerRepository)
 	productService := service.NewProductService(productRepository, categoryRepository, inventoryRepository, productAttributeRepository, attributeRepository)
 	midtransService := service.NewMidtransService(cfig, orderRepository)
 	orderService := service.NewOrderService(orderRepository, midtransService, cartRepository, paymentRepository)
@@ -182,19 +181,19 @@ func (r router) RegisterAPI() *gin.Engine {
 	)
 	attributeService := service.NewAttributeService(attributeRepository)
 	attributeItemService := service.NewAttributeItemService(attributeItemRepository)
+	imageService := service.NewImageService(imageRepository)
 
 	userController := controller.NewUserController(userService, authService)
 	customerController := controller.NewCustomerController(customerService, authService)
-	addressController := controller.NewAddressController(addressService)
 	productController := controller.NewProductController(productService)
 	orderController := controller.NewOrderController(orderService)
-	inventoryController := controller.NewInventoryController(inventoryService)
 	cartController := controller.NewCartController(cartService)
 	cartItemController := controller.NewCartItemController(cartItemService)
 	categoryService := service.NewCategoryService(categoryRepository)
 	categoryController := controller.NewCategoryController(categoryService)
 	attributeController := controller.NewAttributeController(attributeService)
 	attributeItemController := controller.NewAttributeItemController(attributeItemService)
+	imageController := controller.NewImageController(imageService)
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
@@ -220,18 +219,14 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.PUT("/customers/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), customerController.UpdateCustomer)
 	api.DELETE("/customers/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), customerController.DeleteCustomer)
 
-	api.POST("/adress", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), addressController.Create)
-	api.PUT("/adress/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), addressController.Update)
-	api.DELETE("/adress/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), addressController.Delete)
-	api.GET("/adress/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), addressController.FindById)
-	api.GET("/adress", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), addressController.FindAll)
-
 	api.POST("/products", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productController.Create)
 	api.PUT("/products/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productController.Update)
 	api.DELETE("/products/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productController.Delete)
 	api.GET("/products/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productController.FindById)
 	api.GET("/products/code/:code", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productController.FindByCode)
 	api.GET("/products", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productController.FindAll)
+
+	api.POST("/images", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), imageController.Create)
 
 	api.POST("/categories", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryController.Create)
 	api.PUT("/categories/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryController.Update)
@@ -242,13 +237,6 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.POST("/orders", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderController.Create)
 	api.GET("/orders", orderController.FindAll)
 	api.PUT("/orders/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderController.Update)
-
-	api.POST("/inventories", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.Create)
-	api.PUT("/inventories/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.Update)
-	api.DELETE("/inventories/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.Delete)
-	api.GET("/inventories/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.FindById)
-	api.GET("/inventories/product-id/:code", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.FindByProductId)
-	api.GET("/inventories", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), inventoryController.FindAll)
 
 	api.POST("/order-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemController.Create)
 	api.PUT("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemController.Update)

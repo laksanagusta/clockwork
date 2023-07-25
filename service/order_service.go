@@ -24,7 +24,10 @@ type orderService struct {
 	paymentRepo     repository.PaymentRepository
 }
 
-func NewOrderService(repository repository.OrderRepository, midtransService MidtransService, cartRepo repository.CartRepository, paymentRepo repository.PaymentRepository) OrderService {
+func NewOrderService(repository repository.OrderRepository,
+	midtransService MidtransService,
+	cartRepo repository.CartRepository,
+	paymentRepo repository.PaymentRepository) OrderService {
 	return &orderService{
 		repository,
 		midtransService,
