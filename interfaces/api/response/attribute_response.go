@@ -2,6 +2,7 @@ package response
 
 import (
 	"clockwork-server/domain/model"
+	"time"
 )
 
 type Attribute struct {
@@ -10,8 +11,8 @@ type Attribute struct {
 	IsMultiple     *bool           `json:"isMultiple"`
 	IsRequired     *bool           `json:"isRequred"`
 	AttributeItems []AttributeItem `json:"attributeItems"`
-	// CreatedAt      time.Time       `json:"createdAt"`
-	// UpdatedAt      time.Time       `json:"updatedAt"`
+	CreatedAt      time.Time       `json:"createdAt"`
+	UpdatedAt      time.Time       `json:"updatedAt"`
 }
 
 func FormatAttribute(attribute model.Attribute) Attribute {
@@ -21,8 +22,8 @@ func FormatAttribute(attribute model.Attribute) Attribute {
 	attributeRes.IsMultiple = attribute.IsMultiple
 	attributeRes.IsRequired = attribute.IsRequired
 	attributeRes.AttributeItems = FormatAttributeItems(attribute.AttributeItem)
-	// attributeRes.CreatedAt = attribute.CreatedAt
-	// attributeRes.UpdatedAt = attribute.UpdatedAt
+	attributeRes.CreatedAt = attribute.CreatedAt
+	attributeRes.UpdatedAt = attribute.UpdatedAt
 
 	return attributeRes
 }

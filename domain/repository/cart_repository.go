@@ -45,7 +45,12 @@ func (r *cartRepository) Update(cart model.Cart) (model.Cart, error) {
 func (r *cartRepository) FindById(cartId int) (model.Cart, error) {
 	cart := model.Cart{}
 
-	err := r.db.Preload("CartItems").First(&cart, cartId).Error
+	err := r.db.Preload("CartItems").
+		Preload("CartItems.CartItemAttributeItem").
+		Preload("CartItems.CartItemAttributeItem.AttributeItem").
+		Preload("CartItems.CartItemAttributeItem.AttributeItem.Attribute").
+		First(&cart, cartId).Error
+
 	if err != nil {
 		return cart, err
 	}
@@ -56,7 +61,14 @@ func (r *cartRepository) FindById(cartId int) (model.Cart, error) {
 func (r *cartRepository) FindOneByCustomerAndStatus(customerId int, status string) (model.Cart, error) {
 	cart := model.Cart{}
 
-	err := r.db.Where("customer_id = ?", customerId).Where("status = ?", status).Preload("CartItems").First(&cart).Error
+	err := r.db.Where("customer_id = ?", customerId).
+		Where("status = ?", status).
+		Preload("CartItems").
+		Preload("CartItems.CartItemAttributeItem").
+		Preload("CartItems.CartItemAttributeItem.AttributeItem").
+		Preload("CartItems.CartItemAttributeItem.AttributeItem.Attribute").
+		First(&cart).Error
+
 	if err != nil {
 		return cart, err
 	}

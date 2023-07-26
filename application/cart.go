@@ -5,6 +5,7 @@ import (
 	"clockwork-server/domain/repository"
 	"clockwork-server/interfaces/api/request"
 	"errors"
+	"fmt"
 )
 
 type CartService interface {
@@ -70,6 +71,7 @@ func (s *cartService) RecalculateCart(cart model.Cart) model.Cart {
 	cart.BaseAmount = 0
 	cart.TotalItem = 0
 	for _, v := range cart.CartItems {
+		fmt.Println(v.SubTotal)
 		cart.BaseAmount += v.SubTotal
 		cart.TotalItem += 1
 	}

@@ -240,12 +240,6 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.GET("/categories/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryHandler.FindById)
 	api.GET("/categories", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryHandler.FindAll)
 
-	api.POST("/categories", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryHandler.Create)
-	api.PUT("/categories/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryHandler.Update)
-	api.DELETE("/categories/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryHandler.Delete)
-	api.GET("/categories/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryHandler.FindById)
-	api.GET("/categories", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryHandler.FindAll)
-
 	api.POST("/organizations", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), organizationHandler.Create)
 	api.PUT("/organizations/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), organizationHandler.Update)
 	api.DELETE("/organizations/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), organizationHandler.Delete)
@@ -280,8 +274,10 @@ func (r router) RegisterAPI() *gin.Engine {
 
 	api.GET("/carts/active", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartHandler.CheckActiveCart)
 	api.POST("/carts", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartHandler.Create)
+	api.GET("/carts/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartHandler.FindById)
 
 	api.POST("/cart-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Create)
+	api.PUT("/cart-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Update)
 
 	return router
 }

@@ -45,13 +45,13 @@ func (cartItemHandler *cartItemHandler) Create(c *gin.Context) {
 		return
 	}
 
-	response := helper.APIResponse("Success save cartItem !", http.StatusOK, helper.SUCCESS, response.FormatCart(cartItem))
+	response := helper.APIResponse("Success save cart item !", http.StatusOK, helper.SUCCESS, response.FormatCart(cartItem))
 	c.JSON(http.StatusOK, response)
 	return
 }
 
 func (cartItemHandler *cartItemHandler) Update(c *gin.Context) {
-	customerId := c.MustGet("curentCustomer").(model.Customer).ID
+	customerId := c.MustGet("currentCustomer").(model.Customer).ID
 
 	var inputID request.CartItemFindById
 	err := c.ShouldBindUri(&inputID)
@@ -67,13 +67,13 @@ func (cartItemHandler *cartItemHandler) Update(c *gin.Context) {
 		return
 	}
 
-	updatedCartItem, err := cartItemHandler.application.Update(inputID, inputData, int(customerId))
+	updatedCartItem, err := cartItemHandler.application.Update(inputID, inputData, int(customerId), "change")
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.UPDATE_FAILED_MESSAGE)
 		return
 	}
 
-	response := helper.APIResponse("Success create order item", http.StatusOK, helper.SUCCESS, response.FormatCart(updatedCartItem))
+	response := helper.APIResponse("Success create update cart item", http.StatusOK, helper.SUCCESS, response.FormatCart(updatedCartItem))
 	c.JSON(http.StatusOK, response)
 }
 
@@ -90,7 +90,7 @@ func (cartItemHandler *cartItemHandler) FindById(c *gin.Context) {
 		helper.ErrorResponse(err, c, helper.FAILED_GET_DATA_MESSAGE)
 	}
 
-	response := helper.APIResponse("Success get order item !", http.StatusOK, helper.SUCCESS, response.FormatCartItem(cartItem))
+	response := helper.APIResponse("Success get cart item !", http.StatusOK, helper.SUCCESS, response.FormatCartItem(cartItem))
 	c.JSON(http.StatusOK, response)
 }
 
@@ -104,7 +104,7 @@ func (cartItemHandler *cartItemHandler) FindAll(c *gin.Context) {
 		helper.ErrorResponse(err, c, helper.FAILED_GET_DATA_MESSAGE)
 	}
 
-	response := helper.APIResponse("List of order items", http.StatusOK, helper.SUCCESS, response.FormatCartItems(cartItems))
+	response := helper.APIResponse("List of cart items", http.StatusOK, helper.SUCCESS, response.FormatCartItems(cartItems))
 	c.JSON(http.StatusOK, response)
 }
 

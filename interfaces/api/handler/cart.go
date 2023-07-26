@@ -75,11 +75,13 @@ func (cartCN *cartHandler) FindById(c *gin.Context) {
 	err := c.ShouldBindUri(&input)
 	if err != nil {
 		helper.ErrorValidation(err, c, helper.VALIDATION_ERROR_MESSAGE)
+		return
 	}
 
 	cart, err := cartCN.application.FindById(input.ID)
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.FAILED_GET_DATA_MESSAGE)
+		return
 	}
 
 	response := helper.APIResponse("Success get order item !", http.StatusOK, helper.SUCCESS, response.FormatCart(cart))

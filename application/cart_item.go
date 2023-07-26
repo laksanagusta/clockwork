@@ -10,7 +10,7 @@ import (
 
 type CartItemService interface {
 	Create(cartItemReq request.CartItemCreateRequest, customerId int) (model.Cart, error)
-	Update(inputID request.CartItemFindById, request request.CartItemUpdateRequest, customerId int) (model.Cart, error)
+	Update(inputID request.CartItemFindById, request request.CartItemUpdateRequest, customerId int, action string) (model.Cart, error)
 	FindById(cartItemId int) (model.CartItem, error)
 	FindByCode(code string) (model.CartItem, error)
 	FindAll(page int, page_size int, q string) ([]model.CartItem, error)
@@ -80,7 +80,7 @@ func (s *cartItemService) Create(cartItemReq request.CartItemCreateRequest, cust
 			Qty:           cartItemReq.Qty,
 			Note:          cartItemReq.Note,
 			AttributeItem: cartItemReq.AttributeItem,
-		}, customerId)
+		}, customerId, "add")
 
 		if err != nil {
 			return updateCartItem, err
@@ -122,6 +122,11 @@ func (s *cartItemService) Create(cartItemReq request.CartItemCreateRequest, cust
 		return cart, err
 	}
 
+	updateCart, err := s.cartRepository.Update(s.cartService.RecalculateCart(cart))
+	if err != nil {
+		return updateCart, err
+	}
+
 	// inventory.ReservedQty += cartItem.Qty
 	// inventory.SalableQty -= cartItem.Qty
 
@@ -130,10 +135,10 @@ func (s *cartItemService) Create(cartItemReq request.CartItemCreateRequest, cust
 	// 	return model.Order{}, err
 	// }
 
-	return cart, nil
+	return updateCart, nil
 }
 
-func (s *cartItemService) Update(inputID request.CartItemFindById, cartItemReq request.CartItemUpdateRequest, customerId int) (model.Cart, error) {
+func (s *cartItemService) Update(inputID request.CartItemFindById, cartItemReq request.CartItemUpdateRequest, customerId int, action string) (model.Cart, error) {
 	var cart model.Cart
 
 	cartItem, err := s.repository.FindById(inputID.ID)
@@ -148,9 +153,18 @@ func (s *cartItemService) Update(inputID request.CartItemFindById, cartItemReq r
 		return model.Cart{}, err
 	}
 
-	cartItem.Qty += cartItemReq.Qty
+	if action == "add" {
+		cartItem.Qty += cartItemReq.Qty
+	} else {
+		cartItem.Qty = cartItemReq.Qty
+	}
+
 	cartItem.UnitPrice = product.UnitPrice
 	cartItem.SubTotal = cartItem.Qty * product.UnitPrice
+	cartItem.Note = cartItemReq.Note
+
+	attributeItemsSortedId := s.helper.SortAttributeItemId(cartItemReq.AttributeItem)
+	cartItem.AttributeItemSorted = attributeItemsSortedId
 
 	_, err = s.repository.Update(cartItem)
 	if err != nil {

@@ -6,12 +6,13 @@ import (
 )
 
 type Cart struct {
-	ID         uint      `json:"id"`
-	BaseAmount int       `json:"baseAmount"`
-	TotalItem  int       `json:"TotalItem"`
-	Status     string    `json:"status"`
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
+	ID         uint       `json:"id"`
+	BaseAmount int        `json:"baseAmount"`
+	TotalItem  int        `json:"TotalItem"`
+	Status     string     `json:"status"`
+	CartItems  []CartItem `json:"cartItems"`
+	CreatedAt  time.Time  `json:"createdAt"`
+	UpdatedAt  time.Time  `json:"updatedAt"`
 }
 
 func FormatCart(cart model.Cart) Cart {
@@ -23,6 +24,7 @@ func FormatCart(cart model.Cart) Cart {
 	dataCart.BaseAmount = cart.BaseAmount
 	dataCart.CreatedAt = cart.CreatedAt
 	dataCart.UpdatedAt = cart.UpdatedAt
+	dataCart.CartItems = FormatCartItems(cart.CartItems)
 
 	return dataCart
 }
