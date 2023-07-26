@@ -1,7 +1,7 @@
 package helper
 
 import (
-	"clockwork-server/request"
+	"clockwork-server/interfaces/api/request"
 	"sort"
 	"strconv"
 	"strings"

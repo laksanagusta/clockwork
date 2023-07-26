@@ -1,8 +1,8 @@
 package main
 
 import (
-	"clockwork-server/app"
-	"clockwork-server/database"
+	"clockwork-server/infra/database"
+	"clockwork-server/interfaces/api/router"
 	"log"
 	"os"
 
@@ -13,7 +13,7 @@ func main() {
 	loadEnv()
 
 	db := database.NewDatabase()
-	r := app.NewRouter(db.Connect())
+	r := router.NewRouter(db.Connect())
 
 	port := os.Getenv("PORT")
 	r.RegisterAPI().Run(":" + port)
