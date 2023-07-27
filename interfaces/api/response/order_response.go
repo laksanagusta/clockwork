@@ -6,19 +6,42 @@ import (
 )
 
 type Order struct {
-	GrandTotal int       `json:"grandTotal"`
-	Cart       Cart      `json:"cart"`
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
+	BaseAmount             int       `json:"baseAmount"`
+	AdditionalChargeAmount int       `json:"additionalChargeAmount"`
+	DiscountAmount         int       `json:"discountAmount"`
+	TaxAmount              int       `json:"taxAmount"`
+	GrandTotal             int       `json:"grandTotal"`
+	Status                 string    `json:"string"`
+	TransactionNumber      string    `json:"transactionNumber"`
+	SnapUrl                string    `json:"snapUrl"`
+	PaymentID              uint      `json:"paymentId"`
+	Payment                Payment   `json:"payment"`
+	CartID                 uint      `json:"cartId"`
+	Cart                   Cart      `json:"cart"`
+	CreatedAt              time.Time `json:"createdAt"`
+	UpdatedAt              time.Time `json:"updatedAt"`
 }
 
 func FormatOrder(order model.Order) Order {
 	var dataOrder Order
 
 	dataOrder.GrandTotal = order.GrandTotal
+	dataOrder.BaseAmount = order.BaseAmount
+	dataOrder.DiscountAmount = order.DiscountAmount
+
+	dataOrder.TaxAmount = order.TaxAmount
+	dataOrder.Status = order.Status
+	dataOrder.TransactionNumber = order.TransactionNumber
+	dataOrder.SnapUrl = order.SnapUrl
+
+	dataOrder.PaymentID = order.PaymentID
+	dataOrder.Payment = FormatPayment(order.Payment)
+
+	dataOrder.CartID = order.CartID
+	dataOrder.Cart = FormatCart(order.Cart)
+
 	dataOrder.CreatedAt = order.CreatedAt
 	dataOrder.UpdatedAt = order.UpdatedAt
-	dataOrder.Cart = FormatCart(order.Cart)
 
 	return dataOrder
 }

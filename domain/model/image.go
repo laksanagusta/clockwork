@@ -1,10 +1,14 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type Image struct {
-	gorm.Model
+	ID        uint   `gorm:"primarykey"`
 	Url       string `gorm:"size:60;not null;" json:"url"`
 	ProductID uint
 	IsPrimary bool `gorm:"not null;" json:"isPrimary"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }

@@ -144,6 +144,8 @@ func (r router) RegisterAPI() *gin.Engine {
 	// cacheConnection := database.NewDBRedis(cfig)
 
 	cartItemHelper := helper.NewCartItemHelper()
+	globalHelper := helper.NewGlobalHelper()
+	orderHelper := helper.NewOrderHelper()
 
 	userRepository := repository.NewRepository(r.db)
 	customerRepository := repository.NewCustomerRepository(r.db)
@@ -164,9 +166,20 @@ func (r router) RegisterAPI() *gin.Engine {
 
 	userService := application.NewUserService(userRepository)
 	customerService := application.NewCustomerService(customerRepository)
-	productService := application.NewProductService(productRepository, categoryRepository, inventoryRepository, productAttributeRepository, attributeRepository)
+	productService := application.NewProductService(productRepository, categoryRepository,
+		inventoryRepository,
+		productAttributeRepository,
+		attributeRepository,
+		globalHelper,
+	)
 	midtransService := application.NewMidtransService(cfig, orderRepository)
-	orderService := application.NewOrderService(orderRepository, midtransService, cartRepository, paymentRepository)
+	orderService := application.NewOrderService(
+		orderRepository,
+		midtransService,
+		cartRepository,
+		paymentRepository,
+		orderHelper,
+	)
 	inventoryService := application.NewInventoryService(inventoryRepository, cartItemRepository)
 	cartItemAttributeItemService := application.NewCartItemAttributeItemService(cartItemAttributeItemRepository)
 	cartService := application.NewCartService(cartRepository)
@@ -233,6 +246,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.GET("/products", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productHandler.FindAll)
 
 	api.POST("/images", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), imageHandler.Create)
+	api.DELETE("/images/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), imageHandler.Delete)
 
 	api.POST("/categories", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryHandler.Create)
 	api.PUT("/categories/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), categoryHandler.Update)
@@ -253,7 +267,9 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.GET("/locations", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), locationHandler.FindAll)
 
 	api.POST("/orders", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderHandler.Create)
+	api.POST("/place-order", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderHandler.PlaceOrder)
 	api.GET("/orders", orderHandler.FindAll)
+	api.GET("/orders/:id", orderHandler.FindById)
 	api.PUT("/orders/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderHandler.Update)
 
 	api.POST("/order-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Create)

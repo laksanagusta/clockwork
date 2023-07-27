@@ -20,6 +20,7 @@ type OrderHandlerInterface interface {
 	FindById(c *gin.Context)
 	FindAll(c *gin.Context)
 	Delete(c *gin.Context)
+	PlaceOrder(c *gin.Context)
 }
 
 type orderHandler struct {
@@ -28,6 +29,30 @@ type orderHandler struct {
 
 func NewOrderHandler(application application.OrderService) OrderHandlerInterface {
 	return &orderHandler{application}
+}
+
+func (_orderHandler *orderHandler) PlaceOrder(c *gin.Context) {
+	var input request.PlaceOrderRequest
+	err := c.ShouldBindJSON(&input)
+
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"error": errors}
+		response := helper.APIResponse(SAVE_ORDER_FAILED, http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	order, err := _orderHandler.application.PlaceOrder(input)
+	if err != nil {
+		errorMessage := gin.H{"errors": err.Error()}
+		response := helper.APIResponse(SAVE_ORDER_FAILED, http.StatusBadRequest, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse("Success save order !", http.StatusOK, helper.SUCCESS, response.FormatOrder(order))
+	c.JSON(http.StatusOK, response)
 }
 
 func (_orderHandler *orderHandler) Create(c *gin.Context) {

@@ -122,7 +122,7 @@ func (_productHandler *productHandler) FindAll(c *gin.Context) {
 	page, _ := strconv.Atoi(urlQuery.Get("page"))
 	limit, _ := strconv.Atoi(urlQuery.Get("limit"))
 	title := urlQuery.Get("title")
-	categoryId, _ := strconv.Atoi(urlQuery.Get("category_id"))
+	categoryId := urlQuery.Get("category_id")
 
 	products, err := _productHandler.application.FindAll(page, limit, title, categoryId)
 	if err != nil {

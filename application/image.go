@@ -14,7 +14,8 @@ import (
 
 type ImageService interface {
 	Create(request request.ImageCreateRequest, file *multipart.FileHeader) (model.Image, error)
-	Remove(request request.ImageRemoveRequest) (int8, error)
+	Remove(request request.ImageRemoveRequest) (model.Image, error)
+	Update(request request.ImageUpdateRequest, params request.ImageFindByIdRequest) (model.Image, error)
 }
 
 type imageService struct {
@@ -71,21 +72,44 @@ func (s *imageService) Create(request request.ImageCreateRequest, file *multipar
 	return newImage, nil
 }
 
-func (s *imageService) Remove(request request.ImageRemoveRequest) (int8, error) {
+func (s *imageService) Update(request request.ImageUpdateRequest, params request.ImageFindByIdRequest) (model.Image, error) {
+	image, err := s.imageRepo.FindById(params.ID)
+	if err != nil {
+		return image, err
+	}
+
+	image.IsPrimary = request.IsPrimary
+
+	if request.IsPrimary == true {
+		err = s.imageRepo.UpdateIsPrimaryFalse(int(image.ProductID))
+		if err != nil {
+			return image, err
+		}
+	}
+
+	updateImage, err := s.imageRepo.Update(image)
+	if err != nil {
+		return image, err
+	}
+
+	return updateImage, err
+}
+
+func (s *imageService) Remove(request request.ImageRemoveRequest) (model.Image, error) {
 	image, err := s.imageRepo.FindById(request.ID)
 	if err != nil {
-		return request.ID, err
+		return image, err
 	}
 
 	err = os.Remove(image.Url)
 	if err != nil {
-		return request.ID, err
+		return image, err
 	}
 
 	_, err = s.imageRepo.Remove(request.ID)
 	if err != nil {
-		return request.ID, err
+		return image, err
 	}
 
-	return request.ID, nil
+	return image, nil
 }

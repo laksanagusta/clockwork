@@ -1,12 +1,17 @@
 package request
 
 type OrderCreateRequest struct {
-	CartID        int    `json:"cartId" validate:"required" binding:"required,numeric"`
+	CartID        int    `json:"cartId" validate:"required" binding:"required,number"`
+	PaymentMethod string `json:"paymentMethod" validate:"required" binding:"required"`
+}
+
+type PlaceOrderRequest struct {
+	CartID        int    `json:"cartId" validate:"required" binding:"required,number"`
 	PaymentMethod string `json:"paymentMethod" validate:"required" binding:"required"`
 }
 
 type OrderUpdateRequest struct {
-	CartID        int    `json:"cartId" validate:"required" binding:"required,numeric"`
+	CartID        int    `json:"cartId" validate:"required" binding:"required,number"`
 	PaymentMethod string `json:"paymentMethod" validate:"required" binding:"required"`
 }
 

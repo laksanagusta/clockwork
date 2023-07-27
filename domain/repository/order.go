@@ -2,7 +2,6 @@ package repository
 
 import (
 	"clockwork-server/domain/model"
-	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -36,7 +35,7 @@ func (pr *orderRepository) Create(order model.Order) (model.Order, error) {
 }
 
 func (pr *orderRepository) Update(order model.Order) (model.Order, error) {
-	err := pr.db.Save(&order).Preload("orderItems").Error
+	err := pr.db.Save(&order).Error
 
 	if err != nil {
 		return order, err
@@ -47,7 +46,7 @@ func (pr *orderRepository) Update(order model.Order) (model.Order, error) {
 
 func (pr *orderRepository) FindById(orderId int) (model.Order, error) {
 	order := model.Order{}
-	err := pr.db.First(&order, orderId).Error
+	err := pr.db.Preload("Payment").Preload("Cart").Find(&order, orderId).Error
 
 	if err != nil {
 		return order, err
@@ -69,7 +68,6 @@ func (pr *orderRepository) FindOngoingOrder(orderId int) (model.Order, error) {
 
 func (pr *orderRepository) FindByCode(code string) (model.Order, error) {
 	order := model.Order{}
-	fmt.Println(code)
 	err := pr.db.Where("code = ?", code).Find(&order).Error
 
 	if err != nil {

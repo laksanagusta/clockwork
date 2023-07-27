@@ -3,6 +3,7 @@ package application
 import (
 	"clockwork-server/domain/model"
 	"clockwork-server/domain/repository"
+	"clockwork-server/helper"
 	"clockwork-server/interfaces/api/request"
 	"fmt"
 )
@@ -14,7 +15,7 @@ type OrderService interface {
 	FindByCode(code string) (model.Order, error)
 	FindAll(page int, page_size int, q string) ([]model.Order, error)
 	Delete(orderId int) (model.Order, error)
-	PlaceOrder(request request.OrderCreateRequest, orderId request.OrderFindById) (model.Order, error)
+	PlaceOrder(request request.PlaceOrderRequest) (model.Order, error)
 }
 
 type orderService struct {
@@ -22,21 +23,24 @@ type orderService struct {
 	midtransService MidtransService
 	cartRepo        repository.CartRepository
 	paymentRepo     repository.PaymentRepository
+	orderHelper     helper.OrderHelper
 }
 
 func NewOrderService(repository repository.OrderRepository,
 	midtransService MidtransService,
 	cartRepo repository.CartRepository,
-	paymentRepo repository.PaymentRepository) OrderService {
+	paymentRepo repository.PaymentRepository,
+	orderHelper helper.OrderHelper) OrderService {
 	return &orderService{
 		repository,
 		midtransService,
 		cartRepo,
 		paymentRepo,
+		orderHelper,
 	}
 }
 
-func (s *orderService) PlaceOrder(orderReq request.OrderCreateRequest, orderId request.OrderFindById) (model.Order, error) {
+func (s *orderService) PlaceOrder(orderReq request.PlaceOrderRequest) (model.Order, error) {
 	order := model.Order{}
 
 	cart, err := s.cartRepo.FindById(orderReq.CartID)
@@ -56,12 +60,15 @@ func (s *orderService) PlaceOrder(orderReq request.OrderCreateRequest, orderId r
 
 	order.Status = "waiting_for_payment"
 	order.BaseAmount = cart.BaseAmount
-	order.AdditionalChargeAmount = 0
+	order.AdditionalChargeAmount = s.orderHelper.CalculateTotalAdditionalCharge(cart.CartItems)
+
+	totalAmount := order.BaseAmount + order.AdditionalChargeAmount
+
 	order.TaxAmount = cart.BaseAmount * 11 / 100
-	order.GrandTotal = order.BaseAmount + order.TaxAmount
+	order.GrandTotal = totalAmount + order.TaxAmount
 	order.CartID = cart.ID
 	order.DiscountAmount = 0
-	order.SnapUrl = "aazzzdd"
+	order.SnapUrl = ""
 	order.PaymentID = payment.ID
 
 	padZeros, _ := fmt.Printf("%06d", cart.ID)
@@ -72,19 +79,19 @@ func (s *orderService) PlaceOrder(orderReq request.OrderCreateRequest, orderId r
 		return order, err
 	}
 
-	// snapUrl, err := s.midtransService.GenerateSnapUrl(createOrder)
-	// if err != nil {
-	// 	return createOrder, err
-	// }
+	snapUrl, err := s.midtransService.GenerateSnapUrl(createOrder)
+	if err != nil {
+		return createOrder, err
+	}
 
-	// createOrder.SnapUrl = snapUrl
+	createOrder.SnapUrl = snapUrl
 
-	// updateOrder, err := s.repository.Update(createOrder)
-	// if err != nil {
-	// 	return createOrder, err
-	// }
+	updateOrder, err := s.repository.Update(createOrder)
+	if err != nil {
+		return createOrder, err
+	}
 
-	return createOrder, nil
+	return updateOrder, nil
 }
 
 func (s *orderService) Create(request request.OrderCreateRequest) (model.Order, error) {

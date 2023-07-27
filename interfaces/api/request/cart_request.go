@@ -2,7 +2,7 @@ package request
 
 type CartUpdateRequest struct {
 	BaseAmount int    `json:"baseAmount" validate:"required" binding:"required,numberic"`
-	TotalItem  int    `json:"totalItem" validate:"required" binding:"required,numeric"`
+	TotalItem  int    `json:"totalItem" validate:"required" binding:"required,number"`
 	Status     string `json:"status" validate:"required" binding:"required"`
 }
 

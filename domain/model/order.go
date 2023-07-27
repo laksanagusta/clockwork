@@ -4,18 +4,18 @@ import "gorm.io/gorm"
 
 type Order struct {
 	gorm.Model
-	BaseAmount             int     `gorm:"size:20;not null;" json:"baseAmount"`
-	AdditionalChargeAmount int     `gorm:"size:20;not null;" json:"additionalChargeAmount"`
-	DiscountAmount         int     `gorm:"size:20;" json:"discountAmount"`
-	TaxAmount              int     `gorm:"size:20;" json:"taxAmount"`
-	GrandTotal             int     `gorm:"size:20;" json:"grandTotal"`
-	Status                 string  `gorm:"size:20;not null;" json:"string"`
-	TransactionNumber      string  `gorm:"size:20;not null;" json:"transactionNumber"`
-	SnapUrl                string  `gorm:"size:100;" json:"snapUrl"`
-	PaymentID              uint    `gorm:"size:100;" json:"paymentId"`
-	Payment                Payment `gorm:"size:100;" json:"payment"`
-	CartID                 uint    `gorm:"size:20;" json:"cartId"`
-	Cart                   Cart    `gorm:"size:100;" json:"cart"`
+	BaseAmount             int    `gorm:"size:20;not null;" json:"baseAmount"`
+	AdditionalChargeAmount int    `gorm:"size:20;not null;" json:"additionalChargeAmount"`
+	DiscountAmount         int    `gorm:"size:20;" json:"discountAmount"`
+	TaxAmount              int    `gorm:"size:20;" json:"taxAmount"`
+	GrandTotal             int    `gorm:"size:20;" json:"grandTotal"`
+	Status                 string `gorm:"size:20;not null;" json:"string"`
+	TransactionNumber      string `gorm:"size:20;not null;" json:"transactionNumber"`
+	SnapUrl                string `gorm:"size:100;" json:"snapUrl"`
+	PaymentID              uint   `gorm:"size:100;" json:"paymentId"`
+	Payment                Payment
+	CartID                 uint `gorm:"size:20;" json:"cartId"`
+	Cart                   Cart
 }
 
 type OrderStatus struct {

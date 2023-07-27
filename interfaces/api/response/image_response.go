@@ -8,6 +8,7 @@ import (
 type Image struct {
 	ID        uint      `json:"id"`
 	Url       string    `json:"url"`
+	IsPrimary *bool     `json:"isPrimary"`
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 }
@@ -17,6 +18,7 @@ func FormatImage(image model.Image) Image {
 
 	dataImage.ID = image.ID
 	dataImage.Url = image.Url
+	dataImage.IsPrimary = &image.IsPrimary
 	dataImage.CreatedAt = image.CreatedAt
 	dataImage.UpdatedAt = image.UpdatedAt
 

@@ -4,14 +4,14 @@ type RegisterCustomerRequest struct {
 	Name        string `json:"name" binding:"required"`
 	Email       string `json:"email" binding:"required,email"`
 	Password    string `json:"password" binding:"required"`
-	PhoneNumber string `json:"phoneNumber" binding:"required,numeric,min=12,max=12"`
+	PhoneNumber string `json:"phoneNumber" binding:"required,number,min=12,max=12"`
 }
 
 type UpdateCustomerRequest struct {
 	Name        string `json:"name" binding:"required"`
 	Email       string `json:"email" binding:"required,email"`
 	Password    string `json:"password" binding:"required"`
-	PhoneNumber string `json:"phoneNumber" binding:"required,numeric,min=12,max=12"`
+	PhoneNumber string `json:"phoneNumber" binding:"required,number,min=12,max=12"`
 }
 
 type UserLoginRequest struct {

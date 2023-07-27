@@ -13,7 +13,7 @@ type ProductRepository interface {
 	Update(product model.Product) (model.Product, error)
 	FindById(productId int) (model.Product, error)
 	FindBySerialNumberAndTitle(serialNumber string, title string) (model.Product, error)
-	FindAll(page int, page_size int, title string, categoryID int) ([]model.Product, error)
+	FindAll(page int, page_size int, title string, categoryID []int) ([]model.Product, error)
 	Delete(productId int) (model.Product, error)
 }
 
@@ -27,7 +27,6 @@ func NewProductRepository(db *gorm.DB) ProductRepository {
 
 func (pr *productRepository) Create(product model.Product) (model.Product, error) {
 	err := pr.db.Create(&product).Error
-
 	if err != nil {
 		return product, err
 	}
@@ -37,7 +36,6 @@ func (pr *productRepository) Create(product model.Product) (model.Product, error
 
 func (pr *productRepository) Update(product model.Product) (model.Product, error) {
 	err := pr.db.Save(&product).Error
-
 	if err != nil {
 		return product, err
 	}
@@ -52,7 +50,7 @@ type productQueryResult struct {
 func (pr *productRepository) FindById(productId int) (model.Product, error) {
 	product := model.Product{}
 
-	// err := pr.db.Table("products").
+	//  err := pr.db.Table("products").
 	// 	Select("products.title as product_title, products.unit_price as products_unit_price, attributes.title as attributes_title, attribute_items.title as attribute_items_title").
 	// 	Joins("LEFT JOIN product_attributes on product_attributes.product_id = products.id").
 	// 	Joins("LEFT JOIN attributes on attributes.id = product_attributes.attribute_id").
@@ -79,7 +77,7 @@ func (pr *productRepository) FindBySerialNumberAndTitle(serialNumber string, tit
 	return product, nil
 }
 
-func (pr *productRepository) FindAll(page int, limit int, title string, categoryID int) ([]model.Product, error) {
+func (pr *productRepository) FindAll(page int, limit int, title string, categoryID []int) ([]model.Product, error) {
 	var product []model.Product
 
 	querydb := pr.db
@@ -96,6 +94,10 @@ func (pr *productRepository) FindAll(page int, limit int, title string, category
 
 	if title != "" {
 		querydb = querydb.Where("lower(title) LIKE ?", "%"+title+"%")
+	}
+
+	if len(categoryID) > 0 {
+		querydb = querydb.Where("category_id IN ?", categoryID)
 	}
 
 	err := querydb.Preload("Inventory").Preload("User").Preload("Category").Preload("Images").Find(&product).Error

@@ -6,6 +6,7 @@ import (
 	"clockwork-server/helper"
 	"clockwork-server/interfaces/api/request"
 	"errors"
+	"strings"
 )
 
 type ProductService interface {
@@ -13,7 +14,7 @@ type ProductService interface {
 	Update(inputID request.ProductFindById, request request.ProductUpdateInput) (model.Product, error)
 	FindById(productId int) (model.Product, error)
 	FindBySerialNumber(serialNumber string) (model.Product, error)
-	FindAll(page int, limit int, title string, categoryID int) ([]model.Product, error)
+	FindAll(page int, limit int, title string, categoryID string) ([]model.Product, error)
 	Delete(productId int) (model.Product, error)
 }
 
@@ -23,6 +24,7 @@ type productService struct {
 	inventoryRepo   repository.InventoryRepository
 	productAttrRepo repository.ProductAttributeRepository
 	attributeRepo   repository.AttributeRepository
+	globalHelper    helper.GlobalHelper
 }
 
 func NewProductService(
@@ -31,6 +33,7 @@ func NewProductService(
 	inventoryRepo repository.InventoryRepository,
 	productAttrRepo repository.ProductAttributeRepository,
 	attributeRepo repository.AttributeRepository,
+	globalHelper helper.GlobalHelper,
 ) ProductService {
 	return &productService{
 		repository,
@@ -38,6 +41,7 @@ func NewProductService(
 		inventoryRepo,
 		productAttrRepo,
 		attributeRepo,
+		globalHelper,
 	}
 }
 
@@ -199,8 +203,18 @@ func (s *productService) FindBySerialNumber(serialNumber string) (model.Product,
 	return product, nil
 }
 
-func (s *productService) FindAll(page int, limit int, title string, categoryID int) ([]model.Product, error) {
-	products, err := s.repository.FindAll(page, limit, title, categoryID)
+func (s *productService) FindAll(page int, limit int, title string, categoryID string) ([]model.Product, error) {
+	splitCategoryID := []string{}
+	if categoryID != "" {
+		splitCategoryID = strings.Split(categoryID, ",")
+	}
+
+	categoryIDs, err := s.globalHelper.ConvertArrayOfStringToInt(splitCategoryID)
+	if err != nil {
+		return []model.Product{}, err
+	}
+
+	products, err := s.repository.FindAll(page, limit, title, categoryIDs)
 	if err != nil {
 		return products, err
 	}

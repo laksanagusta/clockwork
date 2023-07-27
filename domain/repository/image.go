@@ -12,6 +12,7 @@ type ImageRepository interface {
 	GetImagesByProductId(productId int) ([]model.Image, error)
 	UpdateIsPrimaryFalse(productId int) error
 	FindById(id int8) (model.Image, error)
+	Update(image model.Image) (model.Image, error)
 }
 
 type imageRepository struct {
@@ -24,6 +25,15 @@ func NewImageRepository(db *gorm.DB) ImageRepository {
 
 func (r *imageRepository) Create(image model.Image) (model.Image, error) {
 	err := r.db.Create(&image).Error
+	if err != nil {
+		return image, err
+	}
+
+	return image, nil
+}
+
+func (r *imageRepository) Update(image model.Image) (model.Image, error) {
+	err := r.db.Save(&image).Error
 	if err != nil {
 		return image, err
 	}
@@ -53,7 +63,9 @@ func (r *imageRepository) UpdateIsPrimaryFalse(productId int) error {
 }
 
 func (r *imageRepository) Remove(id int8) (int8, error) {
-	err := r.db.Delete(id).Error
+	image := model.Image{}
+
+	err := r.db.Delete(&image, id).Error
 	if err != nil {
 		return id, err
 	}
@@ -62,7 +74,7 @@ func (r *imageRepository) Remove(id int8) (int8, error) {
 }
 
 func (r *imageRepository) FindById(id int8) (model.Image, error) {
-	image := model.Image{}
+	var image model.Image
 
 	err := r.db.First(&image, id).Error
 	if err != nil {
