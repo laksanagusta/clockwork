@@ -16,6 +16,8 @@ type Order struct {
 	Payment                Payment
 	CartID                 uint `gorm:"size:20;" json:"cartId"`
 	Cart                   Cart
+	CustomerID             uint `gorm:"size:20;" json:"customerId"`
+	Customer               Customer
 }
 
 type OrderStatus struct {

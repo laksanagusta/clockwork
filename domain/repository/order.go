@@ -2,6 +2,7 @@ package repository
 
 import (
 	"clockwork-server/domain/model"
+	"clockwork-server/helper"
 
 	"gorm.io/gorm"
 )
@@ -11,7 +12,7 @@ type OrderRepository interface {
 	Update(order model.Order) (model.Order, error)
 	FindById(orderId int) (model.Order, error)
 	FindByCode(code string) (model.Order, error)
-	FindAll(page int, page_size int, q string) ([]model.Order, error)
+	FindAll(page int, limit int, customerID string) ([]model.Order, error)
 	FindOngoingOrder(userId int) (model.Order, error)
 	Delete(orderId int) (model.Order, error)
 }
@@ -46,7 +47,7 @@ func (pr *orderRepository) Update(order model.Order) (model.Order, error) {
 
 func (pr *orderRepository) FindById(orderId int) (model.Order, error) {
 	order := model.Order{}
-	err := pr.db.Preload("Payment").Preload("Cart").Find(&order, orderId).Error
+	err := pr.db.Preload("Payment").Preload("Cart").Preload("Customer").Find(&order, orderId).Error
 
 	if err != nil {
 		return order, err
@@ -77,16 +78,26 @@ func (pr *orderRepository) FindByCode(code string) (model.Order, error) {
 	return order, nil
 }
 
-func (pr *orderRepository) FindAll(page int, pageSize int, q string) ([]model.Order, error) {
+func (pr *orderRepository) FindAll(page int, limit int, customerID string) ([]model.Order, error) {
 	var order []model.Order
 
-	querydb := pr.db.Offset(page).Limit(pageSize).Where("is_deleted = ?", 0)
+	querydb := pr.db
 
-	if q != "" {
-		querydb.Where("title LIKE ?", "%"+q+"%")
+	if limit > 0 {
+		querydb = querydb.Limit(limit)
+	} else {
+		querydb = querydb.Limit(helper.QUERY_LIMITATION)
 	}
 
-	err := querydb.Find(&order).Error
+	if page > 0 {
+		querydb = querydb.Offset(page - 1)
+	}
+
+	if customerID != "" {
+		querydb.Where("customer_id = ?", customerID)
+	}
+
+	err := querydb.Preload("Cart").Preload("Payment").Find(&order).Error
 	if err != nil {
 		return order, err
 	}

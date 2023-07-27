@@ -47,8 +47,7 @@ func (m midtransService) GenerateSnapUrl(order model.Order) (string, error) {
 			GrossAmt: int64(order.GrandTotal),
 		},
 		EnabledPayments: []snap.SnapPaymentType{
-			"bca_va",
-			"ovo",
+			"gopay",
 		},
 	}
 

@@ -163,6 +163,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	imageRepository := repository.NewImageRepository(r.db)
 	organizationRepository := repository.NewOrganizationRepository(r.db)
 	locationRepository := repository.NewLocationRepository(r.db)
+	voucherRepository := repository.NewVoucherRepository(r.db)
 
 	userService := application.NewUserService(userRepository)
 	customerService := application.NewCustomerService(customerRepository)
@@ -200,6 +201,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	organizationService := application.NewOrganizationService(organizationRepository)
 	locationService := application.NewLocationService(locationRepository)
 	categoryService := application.NewCategoryService(categoryRepository)
+	voucherService := application.NewVoucherService(voucherRepository)
 
 	userHandler := handler.NewUserHandler(userService, authService)
 	customerHandler := handler.NewCustomerHandler(customerService, authService)
@@ -213,6 +215,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	imageHandler := handler.NewImageHandler(imageService)
 	organizationHandler := handler.NewOrganizationHandler(organizationService)
 	locationHandler := handler.NewLocationHandler(locationService)
+	voucherHandler := handler.NewVoucherHandler(voucherService)
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
@@ -294,6 +297,12 @@ func (r router) RegisterAPI() *gin.Engine {
 
 	api.POST("/cart-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Create)
 	api.PUT("/cart-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Update)
+
+	api.POST("/vouchers", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.Create)
+	api.PUT("/vouchers/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.Update)
+	api.DELETE("/vouchers/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.Delete)
+	api.GET("/vouchers/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.FindById)
+	api.GET("/vouchers", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.FindAll)
 
 	return router
 }

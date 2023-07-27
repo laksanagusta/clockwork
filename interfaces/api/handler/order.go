@@ -114,17 +114,13 @@ func (_orderHandler *orderHandler) FindById(c *gin.Context) {
 	err := c.ShouldBindUri(&input)
 
 	if err != nil {
-		errors := helper.FormatValidationError(err)
-		errorMessage := gin.H{"error": errors}
-		response := helper.APIResponse(GET_ORDER_FAILED, http.StatusUnprocessableEntity, "error", errorMessage)
-		c.JSON(http.StatusBadRequest, response)
+		helper.ErrorValidation(err, c, helper.VALIDATION_ERROR_MESSAGE)
 		return
 	}
 
 	order, err := _orderHandler.application.FindById(input.ID)
 	if err != nil {
-		response := helper.APIResponse(GET_ORDER_FAILED, http.StatusBadRequest, "error", nil)
-		c.JSON(http.StatusBadRequest, response)
+		helper.ErrorResponse(err, c, helper.FAILED_GET_DATA_MESSAGE)
 		return
 	}
 
@@ -158,9 +154,10 @@ func (_orderHandler *orderHandler) FindByCode(c *gin.Context) {
 func (_orderHandler *orderHandler) FindAll(c *gin.Context) {
 	q := c.Request.URL.Query()
 	page, _ := strconv.Atoi(q.Get("page"))
-	pageSize, _ := strconv.Atoi(q.Get("page_size"))
-	s := q.Get("q")
-	orders, err := _orderHandler.application.FindAll(page, pageSize, s)
+	limit, _ := strconv.Atoi(q.Get("limit"))
+	customerID := q.Get("customer_id")
+
+	orders, err := _orderHandler.application.FindAll(page, limit, customerID)
 	if err != nil {
 		errorMessage := gin.H{"errors": err.Error()}
 		response := helper.APIResponse(GET_ORDER_FAILED, http.StatusOK, "error", errorMessage)

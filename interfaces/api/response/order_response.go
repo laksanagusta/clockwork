@@ -18,6 +18,7 @@ type Order struct {
 	Payment                Payment   `json:"payment"`
 	CartID                 uint      `json:"cartId"`
 	Cart                   Cart      `json:"cart"`
+	CustomerID             uint      `json:"customerId"`
 	CreatedAt              time.Time `json:"createdAt"`
 	UpdatedAt              time.Time `json:"updatedAt"`
 }
@@ -33,6 +34,8 @@ func FormatOrder(order model.Order) Order {
 	dataOrder.Status = order.Status
 	dataOrder.TransactionNumber = order.TransactionNumber
 	dataOrder.SnapUrl = order.SnapUrl
+
+	dataOrder.CustomerID = order.CustomerID
 
 	dataOrder.PaymentID = order.PaymentID
 	dataOrder.Payment = FormatPayment(order.Payment)

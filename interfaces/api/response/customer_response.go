@@ -19,11 +19,14 @@ type Customer struct {
 func FormatCustomer(customer model.Customer, token string) Customer {
 	var dataCustomer Customer
 
+	dataCustomer.ID = uint(customer.ID)
 	dataCustomer.Name = customer.Name
 	dataCustomer.Email = customer.Email
 	dataCustomer.PhoneNumber = customer.PhoneNumber
 	dataCustomer.Token = token
+
 	dataCustomer.Address = FormatAddresss(customer.Address)
+
 	dataCustomer.CreatedAt = customer.CreatedAt
 	dataCustomer.UpdatedAt = customer.UpdatedAt
 

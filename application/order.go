@@ -5,6 +5,7 @@ import (
 	"clockwork-server/domain/repository"
 	"clockwork-server/helper"
 	"clockwork-server/interfaces/api/request"
+	"errors"
 	"fmt"
 )
 
@@ -13,7 +14,7 @@ type OrderService interface {
 	Update(inputID request.OrderFindById, request request.OrderUpdateRequest) (model.Order, error)
 	FindById(orderId int) (model.Order, error)
 	FindByCode(code string) (model.Order, error)
-	FindAll(page int, page_size int, q string) ([]model.Order, error)
+	FindAll(page int, page_size int, customerID string) ([]model.Order, error)
 	Delete(orderId int) (model.Order, error)
 	PlaceOrder(request request.PlaceOrderRequest) (model.Order, error)
 }
@@ -70,6 +71,7 @@ func (s *orderService) PlaceOrder(orderReq request.PlaceOrderRequest) (model.Ord
 	order.DiscountAmount = 0
 	order.SnapUrl = ""
 	order.PaymentID = payment.ID
+	order.CustomerID = uint(cart.CustomerID)
 
 	padZeros, _ := fmt.Printf("%06d", cart.ID)
 	order.TransactionNumber = fmt.Sprint(padZeros)
@@ -125,6 +127,10 @@ func (s *orderService) FindById(orderId int) (model.Order, error) {
 		return order, err
 	}
 
+	if order.ID == 0 {
+		return order, errors.New("Order not found")
+	}
+
 	return order, nil
 }
 
@@ -137,8 +143,8 @@ func (s *orderService) FindByCode(code string) (model.Order, error) {
 	return order, nil
 }
 
-func (s *orderService) FindAll(page int, pageSize int, q string) ([]model.Order, error) {
-	orders, err := s.repository.FindAll(page, pageSize, q)
+func (s *orderService) FindAll(page int, pageSize int, customerID string) ([]model.Order, error) {
+	orders, err := s.repository.FindAll(page, pageSize, customerID)
 	if err != nil {
 		return orders, err
 	}
