@@ -10,6 +10,7 @@ type Cart struct {
 	BaseAmount int        `json:"baseAmount"`
 	TotalItem  int        `json:"TotalItem"`
 	Status     string     `json:"status"`
+	Voucher    Voucher    `json:"voucher"`
 	CartItems  []CartItem `json:"cartItems"`
 	CreatedAt  time.Time  `json:"createdAt"`
 	UpdatedAt  time.Time  `json:"updatedAt"`
@@ -22,9 +23,10 @@ func FormatCart(cart model.Cart) Cart {
 	dataCart.TotalItem = cart.TotalItem
 	dataCart.Status = cart.Status
 	dataCart.BaseAmount = cart.BaseAmount
+	dataCart.CartItems = FormatCartItems(cart.CartItems)
+	dataCart.Voucher = FormatVoucher(cart.Voucher)
 	dataCart.CreatedAt = cart.CreatedAt
 	dataCart.UpdatedAt = cart.UpdatedAt
-	dataCart.CartItems = FormatCartItems(cart.CartItems)
 
 	return dataCart
 }

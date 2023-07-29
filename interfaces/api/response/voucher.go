@@ -6,12 +6,15 @@ import (
 )
 
 type Voucher struct {
-	ID        uint      `json:"id"`
-	Title     string    `json:"title"`
-	Code      string    `json:"code"`
-	IsActive  *bool     `json:"isActive"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID         uint      `json:"id"`
+	Title      string    `json:"title"`
+	Code       string    `json:"code"`
+	StartTime  string    `json:"startTime"`
+	EndTime    string    `json:"endTime"`
+	DiscAmount int       `json:"discAmount"`
+	IsActive   *bool     `json:"isActive"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
 }
 
 func FormatVoucher(voucher model.Voucher) Voucher {
@@ -20,7 +23,10 @@ func FormatVoucher(voucher model.Voucher) Voucher {
 	dataVoucher.ID = voucher.ID
 	dataVoucher.Title = voucher.Title
 	dataVoucher.Code = voucher.Code
+	dataVoucher.StartTime = voucher.StartTime
+	dataVoucher.EndTime = voucher.EndTime
 	dataVoucher.IsActive = voucher.IsActive
+	dataVoucher.DiscAmount = voucher.DiscAmount
 	dataVoucher.CreatedAt = voucher.CreatedAt
 	dataVoucher.UpdatedAt = voucher.UpdatedAt
 

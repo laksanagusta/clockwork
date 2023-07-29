@@ -13,6 +13,7 @@ type VoucherRepository interface {
 	FindById(voucherId int) (model.Voucher, error)
 	FindAll(page int, page_size int, q string) ([]model.Voucher, error)
 	Delete(voucherId int) (model.Voucher, error)
+	ApplyVoucher(cartId int, voucherId int) (model.Cart, error)
 }
 
 type voucherRepository struct {
@@ -88,4 +89,15 @@ func (pr *voucherRepository) Delete(voucherId int) (model.Voucher, error) {
 	}
 
 	return voucher, nil
+}
+
+func (pr *voucherRepository) ApplyVoucher(cartId int, voucherId int) (model.Cart, error) {
+	var cart model.Cart
+	err := pr.db.Model(&cart).Where("id = ?", cartId).Update("voucher_id", voucherId).Error
+
+	if err != nil {
+		return cart, err
+	}
+
+	return cart, nil
 }

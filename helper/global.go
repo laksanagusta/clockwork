@@ -3,10 +3,13 @@ package helper
 import (
 	"errors"
 	"strconv"
+	"time"
 )
 
 type GlobalHelper interface {
 	ConvertArrayOfStringToInt(strings []string) ([]int, error)
+	StartTimeEndTimeValidation(st time.Time, et time.Time) error
+	NewTrue() *bool
 }
 
 type globalHelper struct {
@@ -29,4 +32,17 @@ func (h *globalHelper) ConvertArrayOfStringToInt(strings []string) ([]int, error
 	}
 
 	return ints, nil
+}
+
+func (h *globalHelper) StartTimeEndTimeValidation(st time.Time, et time.Time) error {
+	if !st.Before(et) {
+		return errors.New("Start time must be lower than end time")
+	}
+
+	return nil
+}
+
+func (h *globalHelper) NewTrue() *bool {
+	b := true
+	return &b
 }

@@ -48,6 +48,7 @@ func (d database) Connect() *gorm.DB {
 		&model.Address{},
 		&model.Organization{},
 		&model.Location{},
+		&model.Voucher{},
 	)
 
 	if err != nil {

@@ -201,7 +201,11 @@ func (r router) RegisterAPI() *gin.Engine {
 	organizationService := application.NewOrganizationService(organizationRepository)
 	locationService := application.NewLocationService(locationRepository)
 	categoryService := application.NewCategoryService(categoryRepository)
-	voucherService := application.NewVoucherService(voucherRepository)
+	voucherService := application.NewVoucherService(
+		voucherRepository,
+		cartRepository,
+		globalHelper,
+	)
 
 	userHandler := handler.NewUserHandler(userService, authService)
 	customerHandler := handler.NewCustomerHandler(customerService, authService)
@@ -215,7 +219,10 @@ func (r router) RegisterAPI() *gin.Engine {
 	imageHandler := handler.NewImageHandler(imageService)
 	organizationHandler := handler.NewOrganizationHandler(organizationService)
 	locationHandler := handler.NewLocationHandler(locationService)
-	voucherHandler := handler.NewVoucherHandler(voucherService)
+	voucherHandler := handler.NewVoucherHandler(
+		voucherService,
+		globalHelper,
+	)
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
@@ -299,6 +306,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.PUT("/cart-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Update)
 
 	api.POST("/vouchers", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.Create)
+	api.POST("/vouchers/apply", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.ApplyVoucher)
 	api.PUT("/vouchers/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.Update)
 	api.DELETE("/vouchers/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.Delete)
 	api.GET("/vouchers/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.FindById)

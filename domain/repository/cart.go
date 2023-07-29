@@ -45,7 +45,8 @@ func (r *cartRepository) Update(cart model.Cart) (model.Cart, error) {
 func (r *cartRepository) FindById(cartId int) (model.Cart, error) {
 	cart := model.Cart{}
 
-	err := r.db.Preload("CartItems").
+	err := r.db.Preload("Voucher").
+		Preload("CartItems").
 		Preload("CartItems.CartItemAttributeItem").
 		Preload("CartItems.CartItemAttributeItem.AttributeItem").
 		Preload("CartItems.CartItemAttributeItem.AttributeItem.Attribute").

@@ -17,22 +17,35 @@ type VoucherHandlerInterface interface {
 	FindById(c *gin.Context)
 	FindAll(c *gin.Context)
 	Delete(c *gin.Context)
+	ApplyVoucher(c *gin.Context)
 }
 
 type voucherHandler struct {
-	application application.VoucherService
+	application   application.VoucherService
+	globalHelper  helper.GlobalHelper
+	voucherHelper helper.VoucherHelper
 }
 
-func NewVoucherHandler(application application.VoucherService) VoucherHandlerInterface {
-	return &voucherHandler{application}
+func NewVoucherHandler(application application.VoucherService, globalHelper helper.GlobalHelper) VoucherHandlerInterface {
+	voucherHelper := helper.NewVoucherHelper()
+	return &voucherHandler{application,
+		globalHelper,
+		voucherHelper,
+	}
 }
 
 func (voucherHandler *voucherHandler) Create(c *gin.Context) {
 	var input request.VoucherCreateInput
-	err := c.ShouldBindJSON(&input)
+	err := c.ShouldBind(&input)
 
 	if err != nil {
 		helper.ErrorValidation(err, c, helper.VALIDATION_ERROR_MESSAGE)
+		return
+	}
+
+	err = voucherHandler.voucherHelper.ValidateTimeValid(input.StartTime, input.EndTime)
+	if err != nil {
+		helper.ErrorResponse(err, c, helper.VALIDATION_ERROR_MESSAGE)
 		return
 	}
 
@@ -59,6 +72,12 @@ func (voucherHandler *voucherHandler) Update(c *gin.Context) {
 	err = c.ShouldBindJSON(&inputData)
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.UPDATE_FAILED_MESSAGE)
+		return
+	}
+
+	err = voucherHandler.voucherHelper.ValidateTimeValid(inputData.StartTime, inputData.EndTime)
+	if err != nil {
+		helper.ErrorResponse(err, c, helper.VALIDATION_ERROR_MESSAGE)
 		return
 	}
 
@@ -123,5 +142,23 @@ func (voucherHandler *voucherHandler) Delete(c *gin.Context) {
 	}
 
 	response := helper.APIResponse("Success delete voucher !", http.StatusOK, helper.SUCCESS, response.FormatVoucher(voucher))
+	c.JSON(http.StatusOK, response)
+}
+
+func (voucherHandler *voucherHandler) ApplyVoucher(c *gin.Context) {
+	var input request.VoucherApply
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		helper.ErrorValidation(err, c, helper.VALIDATION_ERROR_MESSAGE)
+		return
+	}
+
+	cart, err := voucherHandler.application.ApplyVoucher(input)
+	if err != nil {
+		helper.ErrorResponse(err, c, "Failed to apply voucher")
+		return
+	}
+
+	response := helper.APIResponse("Success apply voucher !", http.StatusOK, helper.SUCCESS, response.FormatCart(cart))
 	c.JSON(http.StatusOK, response)
 }
