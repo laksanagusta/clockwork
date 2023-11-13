@@ -70,7 +70,7 @@ func (s *cartItemService) Create(cartItemReq request.CartItemCreateRequest, cust
 
 	attributeItemsSortedId := s.helper.SortAttributeItemId(cartItemReq.AttributeItem)
 
-	cartItemExist, err := s.repository.FindByAttributeItemSorted(attributeItemsSortedId)
+	cartItemExist, err := s.repository.FindByAttributeItemSorted(attributeItemsSortedId, int(cartItemReq.ProductID), int(cartItemReq.CartID))
 	if cartItemExist.ID != 0 {
 		cartItemId := request.CartItemFindById{
 			ID: int(cartItemExist.ID),

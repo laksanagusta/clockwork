@@ -30,9 +30,9 @@ func NewCartHandler(application application.CartService) CartHandlerInterface {
 }
 
 func (cartCN *cartHandler) Create(c *gin.Context) {
-	customerId := c.MustGet("currentCustomer").(model.Customer).ID
+	userId := c.MustGet("currentUser").(model.User).ID
 
-	cart, err := cartCN.application.Create(int(customerId))
+	cart, err := cartCN.application.Create(int(userId))
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.SAVE_FAILED_MESSAGE)
 		return
@@ -126,8 +126,8 @@ func (cartCN *cartHandler) Delete(c *gin.Context) {
 }
 
 func (cartCN *cartHandler) CheckActiveCart(c *gin.Context) {
-	customerId := c.MustGet("currentCustomer").(model.Customer).ID
-	cart, err := cartCN.application.CheckActiveCart(int(customerId))
+	userId := c.MustGet("currentUser").(model.User).ID
+	cart, err := cartCN.application.CheckActiveCart(int(userId))
 	if err != nil {
 		helper.ErrorResponse(err, c, helper.FAILED_GET_DATA_MESSAGE)
 		return

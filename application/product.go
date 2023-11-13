@@ -6,6 +6,7 @@ import (
 	"clockwork-server/helper"
 	"clockwork-server/interfaces/api/request"
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -90,20 +91,22 @@ func (s *productService) Create(request request.ProductCreateInput) (model.Produ
 		return newProduct, err
 	}
 
-	productAttributes := []model.ProductAttribute{}
+	if len(request.Attributes) > 0 {
+		productAttributes := []model.ProductAttribute{}
 
-	for _, value := range request.Attributes {
-		productAttribute := model.ProductAttribute{
-			ProductID:   int(newProduct.ID),
-			AttributeID: value,
+		for _, value := range request.Attributes {
+			productAttribute := model.ProductAttribute{
+				ProductID:   int(newProduct.ID),
+				AttributeID: value,
+			}
+
+			productAttributes = append(productAttributes, productAttribute)
 		}
 
-		productAttributes = append(productAttributes, productAttribute)
-	}
-
-	err = s.productAttrRepo.CreateMany(productAttributes)
-	if err != nil {
-		return newProduct, err
+		err = s.productAttrRepo.CreateMany(productAttributes)
+		if err != nil {
+			return newProduct, err
+		}
 	}
 
 	getNewProduct, err := s.repository.FindById(int(newProduct.ID))
@@ -191,6 +194,7 @@ func (s *productService) FindById(productId int) (model.Product, error) {
 }
 
 func (s *productService) FindBySerialNumber(serialNumber string) (model.Product, error) {
+	fmt.Println(serialNumber)
 	product, err := s.repository.FindBySerialNumberAndTitle(serialNumber, "")
 	if err != nil {
 		return product, err

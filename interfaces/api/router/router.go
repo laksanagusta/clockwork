@@ -183,7 +183,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	)
 	inventoryService := application.NewInventoryService(inventoryRepository, cartItemRepository)
 	cartItemAttributeItemService := application.NewCartItemAttributeItemService(cartItemAttributeItemRepository)
-	cartService := application.NewCartService(cartRepository)
+	cartService := application.NewCartService(cartRepository, imageRepository)
 	cartItemService := application.NewCartItemService(
 		inventoryService,
 		cartRepository,
@@ -252,7 +252,7 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.PUT("/products/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productHandler.Update)
 	api.DELETE("/products/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productHandler.Delete)
 	api.GET("/products/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productHandler.FindById)
-	api.GET("/products/code/:code", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productHandler.FindByCode)
+	api.GET("/products/code/:serialNumber", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productHandler.FindByCode)
 	api.GET("/products", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), productHandler.FindAll)
 
 	api.POST("/images", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), imageHandler.Create)
@@ -276,15 +276,15 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.GET("/locations/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), locationHandler.FindById)
 	api.GET("/locations", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), locationHandler.FindAll)
 
-	api.POST("/orders", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderHandler.Create)
-	api.POST("/place-order", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderHandler.PlaceOrder)
+	api.POST("/orders", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), orderHandler.Create)
+	api.POST("/place-order", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), orderHandler.PlaceOrder)
 	api.GET("/orders", orderHandler.FindAll)
 	api.GET("/orders/:id", orderHandler.FindById)
-	api.PUT("/orders/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), orderHandler.Update)
+	api.PUT("/orders/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), orderHandler.Update)
 
-	api.POST("/order-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Create)
-	api.PUT("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Update)
-	api.DELETE("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Delete)
+	api.POST("/order-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), cartItemHandler.Create)
+	api.PUT("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), cartItemHandler.Update)
+	api.DELETE("/order-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), cartItemHandler.Delete)
 
 	api.POST("/attributes", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeHandler.Create)
 	api.PUT("/attributes/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeHandler.Update)
@@ -298,12 +298,19 @@ func (r router) RegisterAPI() *gin.Engine {
 	api.GET("/attribute-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeItemHandler.FindById)
 	api.GET("/attribute-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), attributeItemHandler.FindAll)
 
-	api.GET("/carts/active", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartHandler.CheckActiveCart)
-	api.POST("/carts", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartHandler.Create)
-	api.GET("/carts/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartHandler.FindById)
+	// api.GET("/carts/active", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartHandler.CheckActiveCart)
+	// api.POST("/carts", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartHandler.Create)
+	// api.GET("/carts/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartHandler.FindById)
 
-	api.POST("/cart-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Create)
-	api.PUT("/cart-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Update)
+	api.GET("/carts/active", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), cartHandler.CheckActiveCart)
+	api.POST("/carts", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), cartHandler.Create)
+	api.GET("/carts/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), cartHandler.FindById)
+
+	// api.POST("/cart-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Create)
+	// api.PUT("/cart-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "customer"), cartItemHandler.Update)
+
+	api.POST("/cart-items", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), cartItemHandler.Create)
+	api.PUT("/cart-items/:id", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), cartItemHandler.Update)
 
 	api.POST("/vouchers", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.Create)
 	api.POST("/vouchers/apply", authMiddleware.AuthMiddleware(authService, userService, customerService, "user"), voucherHandler.ApplyVoucher)

@@ -59,12 +59,15 @@ func (r *cartRepository) FindById(cartId int) (model.Cart, error) {
 	return cart, nil
 }
 
-func (r *cartRepository) FindOneByCustomerAndStatus(customerId int, status string) (model.Cart, error) {
+func (r *cartRepository) FindOneByCustomerAndStatus(userId int, status string) (model.Cart, error) {
 	cart := model.Cart{}
 
-	err := r.db.Where("customer_id = ?", customerId).
+	err := r.db.Where("user_id = ?", userId).
 		Where("status = ?", status).
-		Preload("CartItems").
+		Preload("CartItems", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at DESC")
+		}).
+		Preload("CartItems.Product").
 		Preload("CartItems.CartItemAttributeItem").
 		Preload("CartItems.CartItemAttributeItem.AttributeItem").
 		Preload("CartItems.CartItemAttributeItem.AttributeItem.Attribute").

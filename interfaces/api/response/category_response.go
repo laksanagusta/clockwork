@@ -2,14 +2,11 @@ package response
 
 import (
 	"clockwork-server/domain/model"
-	"time"
 )
 
 type Category struct {
-	ID        uint      `json:"id"`
-	Title     string    `json:"title"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
+	ID    uint   `json:"id"`
+	Title string `json:"title"`
 }
 
 func FormatCategory(category model.Category) Category {
@@ -17,8 +14,6 @@ func FormatCategory(category model.Category) Category {
 
 	dataCategory.ID = category.ID
 	dataCategory.Title = category.Title
-	dataCategory.CreatedAt = category.CreatedAt
-	dataCategory.UpdatedAt = category.UpdatedAt
 
 	return dataCategory
 }

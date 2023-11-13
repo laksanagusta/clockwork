@@ -29,7 +29,7 @@ func NewCartItemHandler(application application.CartItemService) CartItemHandler
 }
 
 func (cartItemHandler *cartItemHandler) Create(c *gin.Context) {
-	customerId := c.MustGet("currentCustomer").(model.Customer).ID
+	customerId := c.MustGet("currentUser").(model.User).ID
 
 	var input request.CartItemCreateRequest
 	err := c.ShouldBindJSON(&input)
@@ -51,7 +51,7 @@ func (cartItemHandler *cartItemHandler) Create(c *gin.Context) {
 }
 
 func (cartItemHandler *cartItemHandler) Update(c *gin.Context) {
-	customerId := c.MustGet("currentCustomer").(model.Customer).ID
+	customerId := c.MustGet("currentUser").(model.User).ID
 
 	var inputID request.CartItemFindById
 	err := c.ShouldBindUri(&inputID)

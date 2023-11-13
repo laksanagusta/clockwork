@@ -11,6 +11,7 @@ type ProductCreateInput struct {
 	CategoryID   uint   `json:"categoryId" validate:"required" binding:"required,number"`
 	User         model.User
 }
+
 type ProductUpdateInput struct {
 	Title        string `json:"title" validate:"required" binding:"required"`
 	UnitPrice    int    `json:"unitPrice" validate:"required" binding:"required"`

@@ -6,14 +6,14 @@ import (
 )
 
 type Cart struct {
-	ID         uint       `json:"id"`
-	BaseAmount int        `json:"baseAmount"`
-	TotalItem  int        `json:"TotalItem"`
-	Status     string     `json:"status"`
-	Voucher    Voucher    `json:"voucher"`
-	CartItems  []CartItem `json:"cartItems"`
-	CreatedAt  time.Time  `json:"createdAt"`
-	UpdatedAt  time.Time  `json:"updatedAt"`
+	ID         uint   `json:"id"`
+	BaseAmount int    `json:"baseAmount"`
+	TotalItem  int    `json:"TotalItem"`
+	Status     string `json:"status"`
+	// Voucher    Voucher    `json:"voucher"`
+	CartItems []CartItem `json:"cartItems"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
 }
 
 func FormatCart(cart model.Cart) Cart {
@@ -24,7 +24,7 @@ func FormatCart(cart model.Cart) Cart {
 	dataCart.Status = cart.Status
 	dataCart.BaseAmount = cart.BaseAmount
 	dataCart.CartItems = FormatCartItems(cart.CartItems)
-	dataCart.Voucher = FormatVoucher(cart.Voucher)
+	// dataCart.Voucher = FormatVoucher(cart.Voucher)
 	dataCart.CreatedAt = cart.CreatedAt
 	dataCart.UpdatedAt = cart.UpdatedAt
 

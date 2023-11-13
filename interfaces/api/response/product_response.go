@@ -2,7 +2,6 @@ package response
 
 import (
 	"clockwork-server/domain/model"
-	"time"
 )
 
 type Product struct {
@@ -13,10 +12,7 @@ type Product struct {
 	UnitPrice    int         `json:"unitPrice"`
 	Category     Category    `json:"category"`
 	Attributes   []Attribute `json:"attributes"`
-	Images       []Image     `jsom:"images"`
-	User         User        `json:"user"`
-	CreatedAt    time.Time   `json:"createdAt"`
-	UpdatedAt    time.Time   `json:"updatedAt"`
+	Images       []Image     `json:"images"`
 }
 
 func FormatProduct(product model.Product) Product {
@@ -27,19 +23,14 @@ func FormatProduct(product model.Product) Product {
 	dataProduct.Description = product.Description
 	dataProduct.SerialNumber = product.SerialNumber
 	dataProduct.UnitPrice = product.UnitPrice
-	dataProduct.CreatedAt = product.CreatedAt
-	dataProduct.UpdatedAt = product.UpdatedAt
 
 	dataProduct.Attributes = FormatAttributes(product.Attributes)
-
-	if product.User.ID != 0 {
-		dataProduct.User = FormatUser(product.User, "")
-	}
 
 	if product.Category.ID != 0 {
 		dataProduct.Category = FormatCategory(product.Category)
 	}
 
+	dataProduct.Images = []Image{}
 	if len(product.Images) > 0 {
 		dataProduct.Images = FormatImages(product.Images)
 	}

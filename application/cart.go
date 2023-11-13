@@ -20,16 +20,18 @@ type CartService interface {
 
 type cartService struct {
 	repository repository.CartRepository
+	imageRepo  repository.ImageRepository
 }
 
-func NewCartService(repository repository.CartRepository) CartService {
+func NewCartService(repository repository.CartRepository, imageRepo repository.ImageRepository) CartService {
 	return &cartService{
 		repository,
+		imageRepo,
 	}
 }
 
-func (s *cartService) Create(customerId int) (model.Cart, error) {
-	cartActive, _ := s.repository.FindOneByCustomerAndStatus(customerId, "active")
+func (s *cartService) Create(userId int) (model.Cart, error) {
+	cartActive, _ := s.repository.FindOneByCustomerAndStatus(userId, "active")
 	if cartActive.ID != 0 {
 		return cartActive, nil
 	}
@@ -38,7 +40,9 @@ func (s *cartService) Create(customerId int) (model.Cart, error) {
 		BaseAmount: 0,
 		TotalItem:  0,
 		Status:     "active",
-		CustomerID: customerId,
+		UserID:     userId,
+		//TODO : Need to check this
+		VoucherID: 1,
 	}
 
 	newCart, err := s.repository.Create(cart)
@@ -100,10 +104,27 @@ func (s *cartService) FindAll(page int, limit int, q string) ([]model.Cart, erro
 	return carts, nil
 }
 
-func (s *cartService) CheckActiveCart(customerId int) (model.Cart, error) {
-	cart, err := s.repository.FindOneByCustomerAndStatus(customerId, "active")
+func (s *cartService) CheckActiveCart(userId int) (model.Cart, error) {
+	cart, err := s.repository.FindOneByCustomerAndStatus(userId, "active")
 	if err != nil {
 		return cart, err
+	}
+
+	var cartItems model.CartItems
+	cartItems = cart.CartItems
+
+	images, err := s.imageRepo.FindByProductIDs(cartItems.PopulateProductIDs())
+	if err != nil {
+		return cart, err
+	}
+
+	productImagesMapped := model.MappingImagesToProduct(images)
+
+	for k, cartItem := range cartItems {
+		val, ok := productImagesMapped[cartItem.Product.ID]
+		if ok {
+			cartItems[k].Product.Images = val
+		}
 	}
 
 	return cart, nil

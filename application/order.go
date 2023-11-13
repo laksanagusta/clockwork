@@ -71,7 +71,7 @@ func (s *orderService) PlaceOrder(orderReq request.PlaceOrderRequest) (model.Ord
 	order.DiscountAmount = 0
 	order.SnapUrl = ""
 	order.PaymentID = payment.ID
-	order.CustomerID = uint(cart.CustomerID)
+	order.UserId = uint(cart.UserID)
 
 	padZeros, _ := fmt.Printf("%06d", cart.ID)
 	order.TransactionNumber = fmt.Sprint(padZeros)

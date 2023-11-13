@@ -12,3 +12,17 @@ type Image struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+func MappingImagesToProduct(i []Image) map[uint][]Image {
+	res := make(map[uint][]Image)
+
+	for _, v := range i {
+		_, ok := res[v.ProductID]
+		if !ok {
+			res[v.ProductID] = []Image{}
+		}
+		res[v.ProductID] = append(res[v.ProductID], v)
+	}
+
+	return res
+}

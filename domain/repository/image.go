@@ -13,6 +13,7 @@ type ImageRepository interface {
 	UpdateIsPrimaryFalse(productId int) error
 	FindById(id int8) (model.Image, error)
 	Update(image model.Image) (model.Image, error)
+	FindByProductIDs(ids []int8) ([]model.Image, error)
 }
 
 type imageRepository struct {
@@ -77,6 +78,17 @@ func (r *imageRepository) FindById(id int8) (model.Image, error) {
 	var image model.Image
 
 	err := r.db.First(&image, id).Error
+	if err != nil {
+		return image, err
+	}
+
+	return image, nil
+}
+
+func (r *imageRepository) FindByProductIDs(ids []int8) ([]model.Image, error) {
+	var image []model.Image
+
+	err := r.db.Where("product_id IN ?", ids).Find(&image).Error
 	if err != nil {
 		return image, err
 	}

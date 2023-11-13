@@ -13,6 +13,7 @@ type CartItem struct {
 	ProductID             uint                    `json:"productId"`
 	Note                  string                  `json:"note"`
 	CartID                uint                    `json:"cartId"`
+	Product               Product                 `json:"product"`
 	CartItemAttributeItem []CartItemAttributeItem `json:"cartItemAttributeItem"`
 	CreatedAt             time.Time               `json:"createdAt"`
 	UpdatedAt             time.Time               `json:"updatedAt"`
@@ -40,6 +41,7 @@ func FormatCartItems(cartItem []model.CartItem) []CartItem {
 
 	for _, value := range cartItem {
 		singleDataCartItem := FormatCartItem(value)
+		singleDataCartItem.Product = FormatProduct(value.Product)
 		dataCartItems = append(dataCartItems, singleDataCartItem)
 	}
 

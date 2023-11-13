@@ -4,7 +4,6 @@ import (
 	"clockwork-server/application"
 	"clockwork-server/helper"
 	"clockwork-server/interfaces/api/auth"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -66,7 +65,6 @@ func (s *authMiddleware) AuthMiddleware(authService auth.Auth, userService appli
 
 			c.Set("currentUser", user)
 		case "customer":
-			fmt.Println(claim)
 			customerID := uint64(claim["customer_id"].(float64))
 
 			customer, err := customerService.CustomerDetails(customerID)

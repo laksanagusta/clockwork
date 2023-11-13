@@ -19,7 +19,7 @@ type Product struct {
 	CategoryID   uint
 	Category     Category
 	Attributes   []Attribute `gorm:"many2many:product_attributes;"`
-	Images       []Image
+	Images       []Image     `json:"images"`
 }
 
 func (c *Product) BeforeCreate(trx *gorm.DB) error {

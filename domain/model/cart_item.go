@@ -15,3 +15,14 @@ type CartItem struct {
 	Cart                  Cart
 	CartItemAttributeItem []CartItemAttributeItem
 }
+
+type CartItems []CartItem
+
+func (ci CartItems) PopulateProductIDs() []int8 {
+	var ids []int8
+	for _, v := range ci {
+		ids = append(ids, int8(v.Product.ID))
+	}
+
+	return ids
+}
